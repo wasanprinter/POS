@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WASAN ERP — Clickable Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary:#1B4C9C; --primary-hover:#163E7E; --primary-tint:#EAF0FB;
+    --bg:#FFFFFF; --surface:#F7F9FC; --border:#DDE4F0;
+    --text:#111827; --text-2:#5B6472;
+    --success:#178A4C; --success-tint:#E7F5EC;
+    --warning:#B8790A; --warning-tint:#FBF1DF;
+    --danger:#C4293A; --danger-tint:#FBE7E9;
+    --info:#2E7BD6; --info-tint:#E9F2FC;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:'Inter','Noto Sans Thai',sans-serif; background:#EDF1F8;
+    color:var(--text); display:flex; flex-direction:column; align-items:center; padding:32px 16px 80px;
+    min-height:100vh;
+  }
+  .mono{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;}
+  h1.page-title{font-size:20px; margin:0 0 4px;}
+  p.page-sub{color:var(--text-2); font-size:14px; margin:0 0 24px;}
+
+  .switcher{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:24px; max-width:390px;}
+  .switcher button{
+    border:1px solid var(--border); background:#fff; color:var(--text-2); font-size:13px; font-weight:600;
+    padding:8px 14px; border-radius:20px; cursor:pointer; font-family:inherit;
+  }
+  .switcher button.active{background:var(--primary); border-color:var(--primary); color:#fff;}
+
+  .phone{
+    width:390px; max-width:100%; height:780px; background:var(--bg); border-radius:36px;
+    border:8px solid #111827; box-shadow:0 20px 50px rgba(20,30,60,.25); overflow:hidden; position:relative;
+  }
+  .statusbar{height:28px; display:flex; align-items:center; justify-content:space-between; padding:0 20px; font-size:12px; font-weight:600; color:var(--text);}
+  .screen{ display:none; height:calc(100% - 28px - 68px); flex-direction:column; }
+  .screen.active{display:flex;}
+  .content{flex:1; overflow-y:auto; padding:16px;}
+  .bottomnav{
+    height:64px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-around;
+    background:#fff; flex-shrink:0;
+  }
+  .navitem{display:flex; flex-direction:column; align-items:center; gap:2px; color:var(--text-2); font-size:10px; font-weight:600; position:relative;}
+  .navitem.active{color:var(--primary);}
+  .navitem svg{width:22px; height:22px;}
+  .fab{
+    position:absolute; bottom:74px; right:16px; width:52px; height:52px; border-radius:50%;
+    background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center;
+    box-shadow:0 8px 20px rgba(27,76,156,.4); border:none; cursor:pointer;
+  }
+
+  /* ---- Login ---- */
+  .login-screen{justify-content:center; padding:32px 24px; background:linear-gradient(180deg,var(--primary-tint) 0%, #fff 45%);}
+  .login-logo{width:64px;height:64px;border-radius:16px;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:24px;margin:0 auto 16px;}
+  .login-title{text-align:center;font-size:22px;font-weight:700;margin:0 0 4px;}
+  .login-sub{text-align:center;color:var(--text-2);font-size:14px;margin:0 0 32px;}
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:13px;font-weight:600;color:var(--text-2);margin-bottom:6px;}
+  .field input{width:100%;height:48px;border:1.5px solid var(--border);border-radius:12px;padding:0 14px;font-size:15px;font-family:inherit;}
+  .field input:focus{outline:2px solid var(--primary);outline-offset:1px;border-color:var(--primary);}
+  .btn-primary{width:100%;height:50px;background:var(--primary);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:600;font-family:inherit;cursor:pointer;}
+  .btn-primary:hover{background:var(--primary-hover);}
+  .login-line{display:flex;align-items:center;gap:8px;margin:20px 0;color:var(--text-2);font-size:13px;}
+  .login-line::before,.login-line::after{content:"";flex:1;height:1px;background:var(--border);}
+  .btn-line{width:100%;height:50px;background:#06C755;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+
+  /* ---- Dashboard ---- */
+  .greeting{font-size:13px;color:var(--text-2);margin:0;}
+  .branch-name{font-size:20px;font-weight:700;margin:2px 0 16px;}
+  .hero-card{background:var(--primary);border-radius:18px;padding:20px;color:#fff;margin-bottom:14px;}
+  .hero-label{font-size:12px;opacity:.85;margin:0 0 4px;}
+  .hero-value{font-size:30px;font-weight:700;margin:0;}
+  .hero-row{display:flex;justify-content:space-between;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.25);}
+  .hero-row div{font-size:12px;opacity:.9;}
+  .hero-row .v{font-size:16px;font-weight:700;opacity:1;margin-top:2px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;}
+  .stat-card .label{font-size:12px;color:var(--text-2);display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+  .stat-card .value{font-size:20px;font-weight:700;}
+  .stat-card.warn .value{color:var(--warning);}
+  .stat-card.danger .value{color:var(--danger);}
+  .section-title{font-size:15px;font-weight:700;margin:18px 0 10px;display:flex;justify-content:space-between;align-items:center;}
+  .section-title span.link{font-size:12px;color:var(--primary);font-weight:600;}
+  .list-item{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:8px;}
+  .avatar{width:40px;height:40px;border-radius:10px;background:var(--info-tint);color:var(--info);display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;}
+  .li-main{flex:1;min-width:0;}
+  .li-title{font-size:14px;font-weight:600;margin:0;}
+  .li-sub{font-size:12px;color:var(--text-2);margin:2px 0 0;}
+  .badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap;}
+  .badge.info{background:var(--info-tint);color:var(--info);}
+  .badge.warn{background:var(--warning-tint);color:var(--warning);}
+  .badge.success{background:var(--success-tint);color:var(--success);}
+  .badge.danger{background:var(--danger-tint);color:var(--danger);}
+
+  /* ---- Repair ---- */
+  .segmented{display:flex;background:var(--surface);border-radius:12px;padding:3px;margin-bottom:14px;}
+  .segmented button{flex:1;border:none;background:transparent;padding:9px;font-size:13px;font-weight:600;color:var(--text-2);border-radius:9px;font-family:inherit;cursor:pointer;}
+  .segmented button.active{background:#fff;color:var(--primary);box-shadow:0 1px 3px rgba(0,0,0,.1);}
+  .repair-detail{display:none;}
+  .repair-detail.active{display:block;}
+  .back-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;color:var(--primary);font-weight:600;font-size:14px;cursor:pointer;}
+  .qr-box{background:var(--surface);border:1px dashed var(--border);border-radius:14px;padding:16px;text-align:center;margin-bottom:16px;}
+  .qr-box .code{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:15px;margin-top:8px;}
+  .stepper{display:flex;align-items:flex-start;margin:16px 0 20px;}
+  .step{flex:1;text-align:center;position:relative;}
+  .step .dot{width:26px;height:26px;border-radius:50%;background:var(--border);color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:12px;font-weight:700;cursor:pointer;}
+  .step.done .dot{background:var(--success);}
+  .step.current .dot{background:var(--primary); box-shadow:0 0 0 4px var(--primary-tint);}
+  .step .lbl{font-size:9px;color:var(--text-2);font-weight:600;}
+  .step.done .lbl, .step.current .lbl{color:var(--text);}
+  .step::before{content:"";position:absolute;top:13px;left:-50%;width:100%;height:2px;background:var(--border);z-index:0;}
+  .step:first-child::before{display:none;}
+  .step.done::before{background:var(--success);}
+  .card-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px;}
+  .kv{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);}
+  .kv:last-child{border-bottom:none;}
+  .kv .k{color:var(--text-2);}
+  .kv .v{font-weight:600;}
+  .btn-block{width:100%;height:48px;border-radius:12px;font-weight:600;font-size:15px;font-family:inherit;cursor:pointer;margin-top:4px;}
+
+  /* ---- Invoice / POS ---- */
+  .cart-item{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px;margin-bottom:8px;}
+  .qty-ctrl{display:flex;align-items:center;gap:8px;background:var(--surface);border-radius:10px;padding:4px 8px;}
+  .qty-ctrl button{width:24px;height:24px;border-radius:6px;border:none;background:#fff;font-weight:700;cursor:pointer;}
+  .pos-summary{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--border);padding:14px 16px;margin:0 -16px -16px;}
+  .sum-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;color:var(--text-2);}
+  .sum-row.total{font-size:17px;font-weight:700;color:var(--text);margin:8px 0 12px;}
+
+  .note{max-width:900px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-top:20px;font-size:13px;color:var(--text-2);line-height:1.6;}
+  .note b{color:var(--text);}
+
+  /* ---- Search + quick actions (Dashboard) ---- */
+  .search-bar{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:12px;height:44px;padding:0 12px;margin-bottom:12px;}
+  .search-bar input{border:none;background:transparent;flex:1;font-size:14px;font-family:inherit;color:var(--text);}
+  .search-bar input:focus{outline:none;}
+  .search-hint{font-size:11px;color:var(--text-2);margin:-8px 0 14px 2px;}
+  .qa-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px;scrollbar-width:none;}
+  .qa-row::-webkit-scrollbar{display:none;}
+  .qa-pill{flex-shrink:0;display:flex;align-items:center;gap:6px;background:var(--primary-tint);color:var(--primary);border:none;border-radius:20px;padding:10px 14px;font-size:12.5px;font-weight:700;font-family:inherit;white-space:nowrap;cursor:pointer;}
+  .hero-split{display:flex;gap:10px;margin-bottom:10px;}
+  .hero-split .hero-card{flex:1;margin-bottom:0;}
+  .hero-card.profit{background:#123B7A;}
+  .ai-card{background:linear-gradient(135deg,#1B4C9C,#3E7BE0);border-radius:16px;padding:16px;color:#fff;margin-top:6px;}
+  .ai-card .ai-title{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;margin-bottom:10px;}
+  .ai-chip{display:block;width:100%;text-align:left;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:10px;padding:10px 12px;font-size:13px;font-family:inherit;margin-bottom:7px;cursor:pointer;}
+  .ai-chip:last-child{margin-bottom:0;}
+  .exp-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;}
+  .exp-row:last-child{border-bottom:none;}
+  .exp-cat{font-weight:600;}
+  .exp-bar-bg{height:5px;background:var(--border);border-radius:3px;margin-top:4px;overflow:hidden;}
+  .exp-bar{height:100%;background:var(--warning);}
+
+  /* ---- Technician-optimized repair screen ---- */
+  .status-quickbar{display:flex;gap:8px;overflow-x:auto;margin:14px 0;scrollbar-width:none;}
+  .status-quickbar::-webkit-scrollbar{display:none;}
+  .status-quickbar button{flex-shrink:0;height:56px;min-width:90px;border-radius:14px;border:1.5px solid var(--border);background:#fff;font-family:inherit;font-weight:700;font-size:12px;color:var(--text-2);cursor:pointer;}
+  .status-quickbar button.current{border-color:var(--primary);background:var(--primary-tint);color:var(--primary);}
+  .timeline{margin:14px 0;}
+  .tl-item{display:flex;gap:10px;padding-bottom:14px;position:relative;}
+  .tl-item::before{content:"";position:absolute;left:5px;top:14px;bottom:-4px;width:2px;background:var(--border);}
+  .tl-item:last-child::before{display:none;}
+  .tl-dot{width:12px;height:12px;border-radius:50%;background:var(--success);margin-top:3px;flex-shrink:0;}
+  .tl-body{font-size:12.5px;}
+  .tl-body .t{font-weight:600;}
+  .tl-body .d{color:var(--text-2);font-size:11px;}
+  .history-toggle{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:13px;font-weight:700;cursor:pointer;margin-top:10px;}
+  .history-panel{display:none;margin-top:8px;}
+  .history-panel.open{display:block;}
+  .history-row{display:flex;justify-content:space-between;font-size:12.5px;padding:8px 0;border-bottom:1px solid var(--border);}
+  .history-row:last-child{border-bottom:none;}
+
+  /* ---- One-handed POS ---- */
+  .pos-search{position:sticky;top:0;background:#fff;z-index:5;padding-bottom:8px;}
+  .pos-scan-row{display:flex;gap:8px;}
+  .pos-scan-row .search-bar{flex:1;margin-bottom:0;}
+  .scan-btn{flex-shrink:0;width:44px;height:44px;border-radius:12px;background:var(--primary);color:#fff;border:none;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;}
+  .toggle-row{display:flex;gap:8px;margin:12px 0;}
+  .toggle-pill{flex:1;height:40px;border-radius:10px;border:1.5px solid var(--border);background:#fff;font-family:inherit;font-weight:700;font-size:12.5px;color:var(--text-2);cursor:pointer;}
+  .toggle-pill.on{border-color:var(--primary);background:var(--primary-tint);color:var(--primary);}
+  .discount-row{display:flex;align-items:center;gap:8px;background:var(--surface);border-radius:10px;padding:8px 10px;margin:10px 0;font-size:13px;}
+  .discount-row input{width:60px;height:30px;border:1px solid var(--border);border-radius:8px;text-align:center;font-family:inherit;}
+  .pay-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+  .pay-btn{height:56px;border-radius:12px;border:1.5px solid var(--border);background:#fff;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
+  .pay-btn.on{border-color:var(--primary);background:var(--primary-tint);color:var(--primary);}
+  .print-btn{width:100%;height:44px;border-radius:10px;border:1.5px dashed var(--primary);background:#fff;color:var(--primary);font-weight:700;font-family:inherit;margin-top:8px;cursor:pointer;}
+
+  /* ---- Desktop / Tablet preview mode ---- */
+  .desktop-wrap{display:none;width:100%;max-width:1180px;background:#fff;border-radius:16px;border:1px solid var(--border);box-shadow:0 10px 40px rgba(20,30,60,.12);overflow:hidden;}
+  .desktop-wrap.active{display:flex;}
+  .d-sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);padding:20px 14px;flex-shrink:0;}
+  .d-logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;margin-bottom:24px;color:var(--primary);}
+  .d-nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:13.5px;font-weight:600;color:var(--text-2);margin-bottom:2px;}
+  .d-nav-item.active{background:var(--primary);color:#fff;}
+  .d-main{flex:1;padding:24px 28px;}
+  .d-topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+  .d-search{width:340px;height:40px;border:1px solid var(--border);border-radius:10px;background:var(--surface);}
+  .d-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+  .d-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;}
+  .d-card .label{font-size:12px;color:var(--text-2);margin-bottom:6px;}
+  .d-card .value{font-size:22px;font-weight:700;}
+  .d-cols{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;}
+  .frame-toggle{display:flex;gap:8px;margin-bottom:16px;}
+  .frame-toggle button{border:1px solid var(--border);background:#fff;border-radius:20px;padding:6px 14px;font-size:12.5px;font-weight:700;color:var(--text-2);cursor:pointer;font-family:inherit;}
+  .frame-toggle button.active{background:var(--text);color:#fff;border-color:var(--text);}
+
+  /* ---- Reusable list toolbar (search + filter + sort + select) ---- */
+  .list-toolbar{display:flex;gap:6px;margin-bottom:10px;}
+  .list-toolbar .search-bar{flex:1;margin-bottom:0;}
+  .tb-icon{flex-shrink:0;width:44px;height:44px;border-radius:12px;border:1px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;}
+  .tb-icon.on{border-color:var(--primary);background:var(--primary-tint);}
+  .filter-chips{display:flex;gap:8px;overflow-x:auto;margin-bottom:12px;scrollbar-width:none;}
+  .filter-chips::-webkit-scrollbar{display:none;}
+  .fchip{flex-shrink:0;border:1px solid var(--border);background:#fff;border-radius:20px;padding:7px 12px;font-size:12px;font-weight:600;color:var(--text-2);white-space:nowrap;cursor:pointer;font-family:inherit;}
+  .fchip.active{background:var(--primary);border-color:var(--primary);color:#fff;}
+  .select-bar{display:none;position:sticky;bottom:0;background:var(--text);color:#fff;border-radius:12px;padding:10px 14px;align-items:center;justify-content:space-between;font-size:12.5px;margin-top:8px;}
+  .select-bar.on{display:flex;}
+  .select-bar button{background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:8px;padding:7px 10px;font-size:11.5px;font-weight:700;font-family:inherit;cursor:pointer;}
+  .chk{width:20px;height:20px;border-radius:6px;border:2px solid var(--border);flex-shrink:0;display:none;align-items:center;justify-content:center;}
+  .selecting .chk{display:flex;}
+  .infinite-hint{text-align:center;font-size:11px;color:var(--text-2);padding:14px 0;}
+
+  /* ---- Grid toggle (Inventory) ---- */
+  .grid-toggle{display:flex;gap:4px;}
+  .product-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .pcard{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+  .pcard .img{height:88px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:28px;}
+  .pcard .body{padding:10px;}
+  .pcard .name{font-size:12.5px;font-weight:700;margin:0 0 4px;line-height:1.3;}
+  .pcard .price-row{display:flex;justify-content:space-between;align-items:baseline;margin-top:4px;}
+  .pcard .sell{font-size:14px;font-weight:700;color:var(--primary);}
+  .pcard .profit{font-size:10.5px;color:var(--success);font-weight:600;}
+
+  /* ---- Detail page shared blocks: attachments / activity log / related ---- */
+  .attach-row{display:flex;gap:8px;overflow-x:auto;margin-bottom:4px;}
+  .attach-thumb{flex-shrink:0;width:56px;height:56px;border-radius:10px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;}
+  .attach-thumb.add{border:1.5px dashed var(--primary);color:var(--primary);}
+  .activity-row{display:flex;gap:8px;font-size:12px;padding:7px 0;border-bottom:1px solid var(--border);}
+  .activity-row:last-child{border-bottom:none;}
+  .activity-row .ic{flex-shrink:0;}
+  .activity-row .d{color:var(--text-2);font-size:10.5px;}
+  .related-chips{display:flex;gap:6px;flex-wrap:wrap;}
+  .related-chip{border:1px solid var(--border);border-radius:10px;padding:6px 10px;font-size:11.5px;font-weight:600;background:var(--surface);}
+
+  /* ---- Purchase / OCR ---- */
+  .upload-box{border:1.5px dashed var(--primary);border-radius:16px;padding:28px 16px;text-align:center;background:var(--primary-tint);margin-bottom:14px;}
+  .ocr-preview{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px;margin-bottom:12px;display:flex;gap:10px;align-items:center;}
+  .ocr-preview .thumb{width:56px;height:72px;background:#e2e8f5;border-radius:8px;flex-shrink:0;}
+  .ocr-badge{font-size:10.5px;font-weight:700;color:var(--success);background:var(--success-tint);padding:3px 8px;border-radius:10px;}
+  .dup-warning{background:var(--warning-tint);border:1px solid var(--warning);color:var(--warning);border-radius:12px;padding:10px 12px;font-size:12.5px;font-weight:600;margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;}
+  .profit-preview{background:var(--success-tint);border-radius:12px;padding:12px;margin:10px 0;}
+  .profit-preview .row{display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0;}
+  .profit-preview .row.total{font-weight:700;color:var(--success);font-size:14px;}
+
+  /* ============ GLOBAL CHROME (Batch 3) ============ */
+
+  /* Smart Header — persistent on every screen */
+  .smartheader{flex-shrink:0;border-bottom:1px solid var(--border);background:#fff;padding:8px 14px 10px;}
+  .sh-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .sh-branch{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--text);}
+  .sh-branch .chev{color:var(--text-2);font-size:10px;}
+  .sh-icons{display:flex;align-items:center;gap:6px;}
+  .sh-icon-btn{position:relative;width:34px;height:34px;border-radius:10px;border:none;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;}
+  .sh-icon-btn.ai{background:linear-gradient(135deg,#1B4C9C,#3E7BE0);color:#fff;}
+  .sh-badge{position:absolute;top:-3px;right:-3px;background:var(--danger);color:#fff;font-size:9px;font-weight:700;min-width:15px;height:15px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 3px;border:2px solid #fff;}
+  .sh-user{width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+  .sh-search{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;height:38px;padding:0 12px;cursor:pointer;}
+  .sh-search span.txt{flex:1;font-size:13px;color:var(--text-2);}
+  .sh-kbd{font-size:10px;background:#fff;border:1px solid var(--border);border-radius:5px;padding:1px 6px;color:var(--text-2);font-family:'IBM Plex Mono',monospace;}
+
+  /* Universal FAB */
+  .gfab-wrap{position:absolute;bottom:78px;right:16px;z-index:30;display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
+  .gfab-menu{display:none;flex-direction:column;gap:8px;background:#fff;border:1px solid var(--border);border-radius:14px;padding:8px;box-shadow:0 10px 30px rgba(20,30,60,.18);}
+  .gfab-menu.open{display:flex;}
+  .gfab-menu button{display:flex;align-items:center;gap:10px;background:none;border:none;padding:9px 10px;border-radius:10px;font-family:inherit;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;white-space:nowrap;text-align:left;}
+  .gfab-menu button:hover{background:var(--surface);}
+  .gfab-main{width:56px;height:56px;border-radius:50%;background:var(--primary);color:#fff;border:none;font-size:26px;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(27,76,156,.4);cursor:pointer;transition:transform .15s;}
+  .gfab-main.open{transform:rotate(45deg);}
+
+  /* Overlays: Command Palette / AI Assistant / Notifications */
+  .overlay-backdrop{position:absolute;inset:0;background:rgba(17,24,39,.4);z-index:40;display:none;}
+  .overlay-backdrop.open{display:block;}
+  .sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:20px 20px 0 0;z-index:41;max-height:80%;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .2s ease;box-shadow:0 -10px 30px rgba(0,0,0,.15);}
+  .sheet.open{transform:translateY(0);}
+  .sheet-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:10px auto 6px;}
+  .sheet-head{display:flex;align-items:center;justify-content:space-between;padding:0 16px 10px;font-weight:700;font-size:15px;}
+  .sheet-close{background:var(--surface);border:none;width:28px;height:28px;border-radius:50%;font-size:14px;cursor:pointer;}
+  .sheet-body{padding:0 16px 20px;overflow-y:auto;}
+
+  .cp-input{width:100%;height:44px;border:1.5px solid var(--primary);border-radius:10px;padding:0 12px;font-size:14px;font-family:inherit;margin-bottom:12px;}
+  .cp-input:focus{outline:none;}
+  .cp-cat{font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.03em;margin:12px 0 6px;}
+  .cp-result{display:flex;align-items:center;gap:10px;padding:9px 6px;border-radius:10px;font-size:13.5px;cursor:pointer;}
+  .cp-result:hover, .cp-result:focus-visible{background:var(--surface);}
+  .cp-result .k{margin-left:auto;font-size:10.5px;color:var(--text-2);}
+
+  .ai-msg{background:var(--surface);border-radius:12px;padding:10px 12px;font-size:13px;margin-bottom:10px;line-height:1.5;}
+  .ai-msg.bot{background:var(--primary-tint);}
+  .ai-input-row{display:flex;gap:8px;position:sticky;bottom:0;background:#fff;padding-top:8px;}
+  .ai-input-row input{flex:1;height:44px;border:1.5px solid var(--border);border-radius:22px;padding:0 16px;font-family:inherit;font-size:13px;}
+  .ai-input-row input:focus{outline:2px solid var(--primary);}
+  .ai-send{width:44px;height:44px;border-radius:50%;background:var(--primary);color:#fff;border:none;cursor:pointer;}
+
+  .notif-tabs{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;}
+  .notif-item{display:flex;gap:10px;padding:10px 4px;border-bottom:1px solid var(--border);}
+  .notif-item:last-child{border-bottom:none;}
+  .notif-ic{width:34px;height:34px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;}
+  .notif-body .t{font-size:13px;font-weight:600;}
+  .notif-body .d{font-size:11px;color:var(--text-2);margin-top:2px;}
+  .notif-unread{width:8px;height:8px;border-radius:50%;background:var(--primary);margin-left:auto;flex-shrink:0;margin-top:6px;}
+
+  /* Dashboard widget customize mode */
+  .widget-wrap{position:relative;}
+  .drag-handle{display:none;position:absolute;top:8px;right:8px;gap:4px;background:rgba(255,255,255,.9);border-radius:6px;padding:3px 6px;font-size:12px;}
+  .customizing .drag-handle{display:flex;}
+  .customizing .stat-card, .customizing .hero-card, .customizing .ai-card, .customizing .card-box{outline:1.5px dashed var(--primary);outline-offset:3px;}
+  .customize-btn{display:flex;align-items:center;gap:6px;background:none;border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:11.5px;font-weight:700;color:var(--text-2);font-family:inherit;cursor:pointer;}
+  .customize-btn.on{background:var(--primary);border-color:var(--primary);color:#fff;}
+
+  /* Skeleton loading */
+  .skel{background:linear-gradient(90deg,#EEF1F7 25%,#F8FAFD 37%,#EEF1F7 63%);background-size:400% 100%;animation:skel 1.4s ease infinite;border-radius:10px;}
+  @keyframes skel{0%{background-position:100% 50%;}100%{background-position:0 50%;}}
+  .skel-card{height:70px;margin-bottom:8px;}
+
+  /* Accessibility */
+  button:focus-visible, input:focus-visible, .list-item:focus-visible{outline:2.5px solid var(--primary);outline-offset:2px;}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;}
+
+  /* Credit Term aging badges */
+  .aging-pill{font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;}
+  .aging-30{background:var(--info-tint);color:var(--info);}
+  .aging-60{background:var(--warning-tint);color:var(--warning);}
+  .aging-90{background:#FCE4E7;color:#A8202F;}
+  .aging-120{background:var(--danger-tint);color:var(--danger);}
+
+  /* ============ BATCH 4 ============ */
+
+  /* Reports */
+  .report-tile{background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center;cursor:pointer;}
+  .report-tile .ic{font-size:22px;margin-bottom:6px;}
+  .report-tile .t{font-size:11.5px;font-weight:700;}
+  .report-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+  .chart-mock{height:150px;background:var(--surface);border-radius:12px;display:flex;align-items:flex-end;gap:6px;padding:12px;margin-bottom:14px;}
+  .chart-mock .bar{flex:1;background:var(--primary);border-radius:4px 4px 0 0;opacity:.85;}
+  .report-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+  .report-actions button{flex:1;min-width:80px;height:42px;border-radius:10px;border:1px solid var(--border);background:#fff;font-family:inherit;font-weight:700;font-size:11.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;}
+
+  /* Settings */
+  .settings-cat{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--border);border-radius:14px;padding:13px;margin-bottom:8px;cursor:pointer;}
+  .settings-cat .ic{width:38px;height:38px;border-radius:10px;background:var(--primary-tint);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+  .settings-cat .chv{margin-left:auto;color:var(--text-2);}
+  .toggle-switch{width:42px;height:24px;border-radius:14px;background:var(--border);position:relative;flex-shrink:0;cursor:pointer;}
+  .toggle-switch.on{background:var(--primary);}
+  .toggle-switch::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .15s;}
+  .toggle-switch.on::after{transform:translateX(18px);}
+  .setting-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--border);font-size:13px;}
+  .setting-row:last-child{border-bottom:none;}
+
+  /* User Management / role preview */
+  .role-tile{flex-shrink:0;background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:12px;text-align:center;width:84px;cursor:pointer;}
+  .role-tile.active{border-color:var(--primary);background:var(--primary-tint);}
+  .role-tile .ic{font-size:20px;}
+  .role-tile .n{font-size:11px;font-weight:700;margin-top:4px;}
+  .role-scroller{display:flex;gap:8px;overflow-x:auto;margin-bottom:14px;}
+  .perm-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12.5px;}
+  .perm-row .yes{color:var(--success);}
+  .perm-row .no{color:var(--danger);}
+  .preview-banner{background:var(--text);color:#fff;border-radius:12px;padding:10px 14px;font-size:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+
+  /* System Health */
+  .health-card{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--border);border-radius:14px;padding:13px;margin-bottom:8px;}
+  .health-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+  .health-dot.ok{background:var(--success);}
+  .health-dot.warn{background:var(--warning);}
+
+  /* Audit Center */
+  .audit-row{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:12.5px;}
+  .audit-diff{background:var(--surface);border-radius:8px;padding:6px 8px;margin-top:4px;font-size:11px;}
+  .audit-diff .old{color:var(--danger);text-decoration:line-through;}
+  .audit-diff .new{color:var(--success);font-weight:700;}
+</style>
+</head>
+<body>
+
+<div class="switcher" id="switcher">
+  <button data-screen="login" class="active">Login</button>
+  <button data-screen="dashboard">Dashboard</button>
+  <button data-screen="repair">Repair</button>
+  <button data-screen="invoice">Invoice / POS</button>
+  <button data-screen="customers">Customers</button>
+  <button data-screen="printers">Printer Master</button>
+  <button data-screen="inventory">Inventory</button>
+  <button data-screen="purchase">Purchase (OCR)</button>
+  <button data-screen="suppliers">Suppliers</button>
+  <button data-screen="docs">Sales Docs</button>
+  <button data-screen="credit">Credit Term</button>
+  <button data-screen="reports">Reports</button>
+  <button data-screen="settings">Settings</button>
+  <button data-screen="users">User Mgmt</button>
+  <button data-screen="health">System Health</button>
+  <button data-screen="audit">Audit Center</button>
+</div>
+
+<div class="frame-toggle" id="frametoggle">
+  <button class="active" data-frame="mobile">📱 iPhone (Mobile)</button>
+  <button data-frame="tablet">📱 iPad (Tablet)</button>
+  <button data-frame="desktop">💻 Desktop</button>
+</div>
+
+<div class="phone" id="phoneFrame">
+  <div class="statusbar"><span>9:41</span><span>WASAN ERP</span><span>🔋</span></div>
+
+  <!-- SMART HEADER (persistent on every screen) -->
+  <div class="smartheader">
+    <div class="sh-top">
+      <div class="sh-branch">🏢 Head Office <span class="chev">▾</span></div>
+      <div class="sh-icons">
+        <button class="sh-icon-btn" aria-label="การแจ้งเตือน" onclick="openSheet('notif')">🔔<span class="sh-badge">6</span></button>
+        <button class="sh-icon-btn ai" aria-label="AI Assistant" onclick="openSheet('ai')">✨</button>
+        <div class="sh-user" title="สมชาย ใจดี">SC</div>
+      </div>
+    </div>
+    <div class="sh-search" onclick="openSheet('cp')" role="button" tabindex="0" aria-label="ค้นหาทุกอย่าง (Command Palette)">
+      🔍<span class="txt">ค้นหาทุกอย่าง — ลูกค้า, สินค้า, ใบซ่อม, เอกสาร...</span><span class="sh-kbd">⌘K</span>
+    </div>
+  </div>
+
+  <!-- Global FAB -->
+  <div class="gfab-wrap">
+    <div class="gfab-menu" id="gfabMenu">
+      <button onclick="go('repair')">🔧 งานซ่อมใหม่</button>
+      <button onclick="go('invoice')">🧾 ใบแจ้งขายใหม่</button>
+      <button onclick="go('customers')">👤 ลูกค้าใหม่</button>
+      <button onclick="go('inventory')">📦 เพิ่มสินค้า</button>
+      <button>💸 บันทึกรายจ่าย</button>
+      <button onclick="go('purchase')">🛒 สั่งซื้อใหม่</button>
+    </div>
+    <button class="gfab-main" id="gfabMain" aria-label="สร้างรายการใหม่" onclick="toggleGfab()">＋</button>
+  </div>
+
+  <!-- Command Palette (Ctrl/Cmd+K desktop, search button mobile) -->
+  <div class="overlay-backdrop" id="backdrop-cp" onclick="closeSheet('cp')"></div>
+  <div class="sheet" id="sheet-cp" role="dialog" aria-label="ค้นหาทุกอย่าง">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">ค้นหาทุกอย่าง <button class="sheet-close" onclick="closeSheet('cp')" aria-label="ปิด">✕</button></div>
+    <div class="sheet-body">
+      <input class="cp-input" placeholder="พิมพ์ชื่อ, เบอร์, เลขที่เอกสาร..." autofocus>
+      <div class="cp-cat">ทำรายการด่วน</div>
+      <div class="cp-result" tabindex="0">🧾 <span>สร้างใบแจ้งขายใหม่</span><span class="k">Enter</span></div>
+      <div class="cp-result" tabindex="0">🔧 <span>รับงานซ่อมใหม่</span><span class="k">Enter</span></div>
+      <div class="cp-cat">ลูกค้า</div>
+      <div class="cp-result" tabindex="0">👤 <span>Somchai Jaidee · 081-234-5001</span></div>
+      <div class="cp-cat">สินค้า</div>
+      <div class="cp-result" tabindex="0">🖨️ <span>Canon PIXMA G3010 · SKU PRN-CAN-G3010</span></div>
+      <div class="cp-cat">งานซ่อม / เอกสาร / ซัพพลายเออร์ / รายจ่าย</div>
+      <div class="cp-result" tabindex="0">🔧 <span>RPQR-0001 · Somchai Jaidee</span></div>
+      <div class="cp-result" tabindex="0">🧾 <span>IV-2026-000042</span></div>
+    </div>
+  </div>
+
+  <!-- AI Assistant Panel -->
+  <div class="overlay-backdrop" id="backdrop-ai" onclick="closeSheet('ai')"></div>
+  <div class="sheet" id="sheet-ai" role="dialog" aria-label="AI Assistant">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">✨ AI Assistant <button class="sheet-close" onclick="closeSheet('ai')" aria-label="ปิด">✕</button></div>
+    <div class="sheet-body">
+      <div class="ai-msg bot">สวัสดีครับ ถามอะไรเกี่ยวกับร้านได้เลยครับ 👋</div>
+      <div class="cp-cat">คำถามแนะนำ</div>
+      <div class="cp-result" tabindex="0">📊 อธิบายยอดขายวันนี้ให้หน่อย</div>
+      <div class="cp-result" tabindex="0">📦 สินค้าตัวไหนควรสั่งเพิ่ม?</div>
+      <div class="cp-result" tabindex="0">💳 ลูกค้าคนไหนค้างชำระเกินกำหนด?</div>
+      <div class="cp-result" tabindex="0">🔧 สรุปสถานะงานซ่อมทั้งหมด</div>
+      <div class="cp-result" tabindex="0">🔮 คาดการณ์ยอดสั่งซื้อเดือนหน้า</div>
+      <div class="ai-input-row">
+        <input placeholder="พิมพ์คำถาม..." aria-label="พิมพ์คำถามถึง AI">
+        <button class="ai-send" aria-label="ส่งคำถาม">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Center -->
+  <div class="overlay-backdrop" id="backdrop-notif" onclick="closeSheet('notif')"></div>
+  <div class="sheet" id="sheet-notif" role="dialog" aria-label="การแจ้งเตือน">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">🔔 การแจ้งเตือน <button class="sheet-close" onclick="closeSheet('notif')" aria-label="ปิด">✕</button></div>
+    <div class="sheet-body">
+      <div class="notif-tabs">
+        <button class="fchip active">ทั้งหมด</button><button class="fchip">ซ่อม</button><button class="fchip">สต๊อก</button><button class="fchip">เครดิต</button><button class="fchip">ซื้อ</button><button class="fchip">OCR</button><button class="fchip">LINE</button>
+      </div>
+      <div class="notif-item"><div class="notif-ic" style="background:var(--info-tint);">🔧</div><div class="notif-body"><div class="t">RPQR-0002 เปลี่ยนสถานะเป็น "กำลังซ่อม"</div><div class="d">5 นาทีที่แล้ว</div></div><div class="notif-unread"></div></div>
+      <div class="notif-item"><div class="notif-ic" style="background:var(--warning-tint);">📦</div><div class="notif-body"><div class="t">Canon GI-790 Black เหลือ 3 ชิ้น (ต่ำกว่าขั้นต่ำ)</div><div class="d">32 นาทีที่แล้ว</div></div><div class="notif-unread"></div></div>
+      <div class="notif-item"><div class="notif-ic" style="background:var(--danger-tint);">💳</div><div class="notif-body"><div class="t">Bangkok Print Supplies ค้างชำระเกิน 30 วัน</div><div class="d">1 ชม.ที่แล้ว</div></div><div class="notif-unread"></div></div>
+      <div class="notif-item"><div class="notif-ic" style="background:var(--success-tint);">🛒</div><div class="notif-body"><div class="t">PO-2026-000018 ได้รับสินค้าแล้ว</div><div class="d">3 ชม.ที่แล้ว</div></div></div>
+      <div class="notif-item"><div class="notif-ic" style="background:var(--info-tint);">📷</div><div class="notif-body"><div class="t">ผล OCR ใบเสร็จรอตรวจสอบ 1 รายการ</div><div class="d">3 ชม.ที่แล้ว</div></div><div class="notif-unread"></div></div>
+      <div class="notif-item"><div class="notif-ic" style="background:#06C75522;">💬</div><div class="notif-body"><div class="t">Nattaya Suksawat ทักไลน์เข้ามา</div><div class="d">เมื่อวาน</div></div></div>
+    </div>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="screen active login-screen" id="screen-login">
+    <div class="content" style="display:flex;flex-direction:column;justify-content:center;">
+      <div class="login-logo">W</div>
+      <div class="login-title">WASAN ERP</div>
+      <p class="login-sub">เข้าสู่ระบบเพื่อจัดการร้านของคุณ</p>
+      <div class="field"><label>เบอร์โทรศัพท์ / อีเมล</label><input type="text" placeholder="081-234-5678" value="081-234-5678"></div>
+      <div class="field"><label>รหัสผ่าน</label><input type="password" placeholder="••••••••" value="••••••••"></div>
+      <button class="btn-primary" onclick="go('dashboard')">เข้าสู่ระบบ</button>
+      <div class="login-line">หรือ</div>
+      <button class="btn-line">💬 เข้าสู่ระบบด้วย LINE</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="screen" id="screen-dashboard">
+    <div class="content">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div><p class="greeting">สวัสดี, คุณสมชาย 👋</p><p class="branch-name" style="margin-bottom:2px;">สาขา Head Office</p></div>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+          <button class="customize-btn" id="customizeBtn" onclick="toggleCustomize()">⠿ ปรับแต่งหน้าหลัก</button>
+          <button class="customize-btn" onclick="toggleSkeleton()">⏳ Loading demo</button>
+        </div>
+      </div>
+      <p style="margin:-6px 0 14px;font-size:11px;color:var(--text-2);">โหมดปรับแต่ง: ลาก (⠿) เพื่อจัดเรียง, แตะ 👁️ เพื่อซ่อน/แสดง widget — บันทึกเป็น layout ส่วนตัว</p>
+
+      <!-- Skeleton loading demo -->
+      <div id="dash-skeleton" style="display:none;">
+        <div class="skel skel-card"></div><div class="skel skel-card"></div><div class="skel skel-card" style="height:120px;"></div>
+      </div>
+
+      <div id="dash-widgets">
+      <div class="search-bar">🔍<input type="text" placeholder="ค้นหา ลูกค้า / สินค้า / ใบเสร็จ / ใบซ่อม / Serial / QR / Barcode"></div>
+      <p class="search-hint">ค้นหา: ลูกค้า · สินค้า · ใบเสร็จ · ใบซ่อม · Serial · QR · Barcode</p>
+
+      <div class="qa-row">
+        <button class="qa-pill" onclick="go('invoice')">+ ขายสินค้า</button>
+        <button class="qa-pill" onclick="go('repair')">+ รับซ่อม</button>
+        <button class="qa-pill">+ สร้างใบเสนอราคา</button>
+        <button class="qa-pill">+ เพิ่มสต๊อก</button>
+        <button class="qa-pill">+ บันทึกรายจ่าย</button>
+      </div>
+
+      <!-- 1. Today's Revenue + Profit -->
+      <div class="widget-wrap">
+      <div class="hero-split">
+        <div class="hero-card"><p class="hero-label">รายได้วันนี้</p><p class="hero-value mono">฿12,480</p></div>
+        <div class="hero-card profit"><p class="hero-label">กำไรวันนี้</p><p class="hero-value mono">฿4,120</p></div>
+      </div>
+      <span class="drag-handle">⠿ 👁️</span>
+      </div>
+
+      <!-- 2. Outstanding Credit -->
+      <div class="widget-wrap">
+      <div class="stat-card danger" style="margin-bottom:14px;" onclick="go('repair')">
+        <div class="label">💳 ยอดค้างชำระ (ลูกหนี้)</div>
+        <div class="value mono">฿31,900</div>
+      </div>
+      <span class="drag-handle">⠿ 👁️</span>
+      </div>
+
+      <!-- 3. Repair Queue + 4. Low Stock -->
+      <div class="widget-wrap">
+      <div class="grid2">
+        <div class="stat-card" onclick="go('repair')"><div class="label">🔧 คิวซ่อม</div><div class="value">7 งาน</div></div>
+        <div class="stat-card warn"><div class="label">📦 สต๊อกต่ำ</div><div class="value">4 รายการ</div></div>
+      </div>
+      <span class="drag-handle">⠿ 👁️</span>
+      </div>
+
+      <!-- 5. Top 10 Expenses -->
+      <div class="widget-wrap">
+      <div class="section-title">รายจ่ายสูงสุด (เดือนนี้) <span class="link">ดูทั้งหมด</span></div>
+      <div class="card-box">
+        <div class="exp-row"><span class="exp-cat">เงินเดือน</span><span class="mono">฿18,000</span></div>
+        <div class="exp-row"><span class="exp-cat">ค่าเช่า</span><span class="mono">฿15,000</span></div>
+        <div class="exp-row"><span class="exp-cat">ค่าไฟฟ้า</span><span class="mono">฿3,200</span></div>
+        <div class="exp-row"><span class="exp-cat">การตลาด</span><span class="mono">฿1,500</span></div>
+        <div class="exp-row" style="border:none;"><span class="exp-cat" style="color:var(--danger)">⚠ รายจ่ายผิดปกติวันนี้</span><span class="mono" style="color:var(--danger)">฿2,400</span></div>
+      </div>
+      <span class="drag-handle">⠿ 👁️</span>
+      </div>
+
+      <!-- 6. AI Insights -->
+      <div class="widget-wrap">
+      <div class="ai-card">
+        <div class="ai-title">✨ AI Insights — ถามได้เลย</div>
+        <button class="ai-chip">วันนี้กำไรเท่าไหร่?</button>
+        <button class="ai-chip">ลูกหนี้ค้างใครบ้าง?</button>
+        <button class="ai-chip">หมึกตัวไหนใกล้หมด?</button>
+        <button class="ai-chip">งานซ่อมค้างกี่งาน?</button>
+      </div>
+      <span class="drag-handle">⠿ 👁️</span>
+      </div>
+      </div><!-- /dash-widgets -->
+    </div>
+    <div class="bottomnav">
+      <div class="navitem active">🏠<span>หน้าหลัก</span></div>
+      <div class="navitem" onclick="go('repair')">🔧<span>ซ่อม</span></div>
+      <div class="navitem" onclick="go('invoice')">🧾<span>ขาย</span></div>
+      <div class="navitem">📦<span>คลัง</span></div>
+      <div class="navitem">☰<span>เพิ่มเติม</span></div>
+    </div>
+  </div>
+
+  <!-- REPAIR -->
+  <div class="screen" id="screen-repair">
+    <div class="content">
+      <div id="repair-list">
+        <h1 class="page-title">คิวซ่อม</h1>
+        <p class="page-sub">7 งานที่กำลังดำเนินการ</p>
+        <div class="segmented">
+          <button class="active">ทั้งหมด</button><button>รออนุมัติ</button><button>กำลังซ่อม</button><button>พร้อมรับ</button>
+        </div>
+        <div class="list-item" onclick="openRepairDetail()">
+          <div class="avatar">SJ</div>
+          <div class="li-main"><p class="li-title">Somchai Jaidee</p><p class="li-sub">Canon PIXMA G3010 · RPQR-0001</p></div>
+          <span class="badge warn">รออนุมัติ</span>
+        </div>
+        <div class="list-item">
+          <div class="avatar">NS</div>
+          <div class="li-main"><p class="li-title">Nattaya Suksawat</p><p class="li-sub">Epson L3250 · RPQR-0002</p></div>
+          <span class="badge info">กำลังซ่อม</span>
+        </div>
+        <div class="list-item">
+          <div class="avatar">BK</div>
+          <div class="li-main"><p class="li-title">Bangkok Print Supplies</p><p class="li-sub">HP LaserJet M404 · RPQR-0003</p></div>
+          <span class="badge success">พร้อมรับ</span>
+        </div>
+      </div>
+
+      <div class="repair-detail" id="repair-detail">
+        <div class="back-row" onclick="closeRepairDetail()">← กลับ</div>
+        <div class="qr-box">
+          <div style="font-size:40px;">▦</div>
+          <div class="code">RPQR-0001</div>
+        </div>
+        <div class="stepper">
+          <div class="step done"><div class="dot">✓</div><div class="lbl">รับเครื่อง</div></div>
+          <div class="step done"><div class="dot">✓</div><div class="lbl">ตรวจสอบ</div></div>
+          <div class="step current"><div class="dot">3</div><div class="lbl">รออนุมัติ</div></div>
+          <div class="step"><div class="dot">4</div><div class="lbl">กำลังซ่อม</div></div>
+          <div class="step"><div class="dot">5</div><div class="lbl">พร้อมรับ</div></div>
+        </div>
+
+        <p style="font-size:12px;font-weight:700;color:var(--text-2);margin:0 0 6px;">อัปเดตสถานะด่วน (แตะปุ่มใหญ่)</p>
+        <div class="status-quickbar">
+          <button class="current">รออนุมัติ</button>
+          <button onclick="advanceStep()">เริ่มซ่อม</button>
+          <button>ทดสอบ</button>
+          <button>พร้อมรับ</button>
+          <button style="color:var(--danger);border-color:var(--danger);">ยกเลิก</button>
+        </div>
+
+        <div class="card-box">
+          <div class="kv"><span class="k">เครื่องพิมพ์</span><span class="v">Canon PIXMA G3010</span></div>
+          <div class="kv"><span class="k">อาการ</span><span class="v">กระดาษติดบ่อย</span></div>
+          <div class="kv"><span class="k">ค่าซ่อมประเมิน</span><span class="v mono">฿ 450.00</span></div>
+        </div>
+
+        <p style="font-size:12px;font-weight:700;color:var(--text-2);margin:14px 0 4px;">ไทม์ไลน์งานซ่อม</p>
+        <div class="timeline">
+          <div class="tl-item"><div class="tl-dot"></div><div class="tl-body"><div class="t">รับเครื่อง — ถ่ายรูป + เซ็นยินยอม</div><div class="d">17 ก.ค. 09:12 · โดย สมชาย (ช่าง)</div></div></div>
+          <div class="tl-item"><div class="tl-dot"></div><div class="tl-body"><div class="t">วินิจฉัย — ลูกกลิ้งดึงกระดาษสึก</div><div class="d">17 ก.ค. 10:40 · โดย สมชาย (ช่าง)</div></div></div>
+          <div class="tl-item"><div class="tl-dot" style="background:var(--warning);"></div><div class="tl-body"><div class="t">แจ้งลูกค้าผ่าน LINE — รอการอนุมัติ</div><div class="d">17 ก.ค. 10:41 · ระบบอัตโนมัติ</div></div></div>
+        </div>
+
+        <div class="history-toggle" onclick="document.getElementById('cust-history').classList.toggle('open')">
+          <span>📜 ประวัติลูกค้า (Somchai Jaidee)</span><span>▾</span>
+        </div>
+        <div class="history-panel" id="cust-history">
+          <div class="card-box" style="margin-top:8px;">
+            <div class="history-row"><span>งานซ่อมก่อนหน้า</span><span class="v">3 ครั้ง</span></div>
+            <div class="history-row"><span>ยอดซื้อสะสม</span><span class="mono v">฿6,240</span></div>
+            <div class="history-row"><span>ยอดค้างชำระ</span><span class="mono" style="color:var(--danger);font-weight:700;">฿0</span></div>
+            <div class="history-row"><span>เครื่องพิมพ์อื่นของลูกค้า</span><span class="v">Epson L3250</span></div>
+          </div>
+        </div>
+
+        <button class="btn-block" style="background:var(--success);color:#fff;border:none;margin-top:14px;" onclick="advanceStep()">✓ ลูกค้าอนุมัติแล้ว — เริ่มซ่อม</button>
+        <button class="btn-block" style="background:#fff;color:var(--danger);border:1.5px solid var(--danger);">ยกเลิกงานซ่อม</button>
+      </div>
+    </div>
+    <div class="bottomnav">
+      <div class="navitem" onclick="go('dashboard')">🏠<span>หน้าหลัก</span></div>
+      <div class="navitem active">🔧<span>ซ่อม</span></div>
+      <div class="navitem" onclick="go('invoice')">🧾<span>ขาย</span></div>
+      <div class="navitem">📦<span>คลัง</span></div>
+      <div class="navitem">☰<span>เพิ่มเติม</span></div>
+    </div>
+  </div>
+
+  <!-- INVOICE / POS -->
+  <div class="screen" id="screen-invoice">
+    <div class="content">
+      <div class="pos-search">
+        <p class="page-title" style="margin-bottom:8px;">ขายสินค้า <span style="font-size:12px;font-weight:600;color:var(--text-2);">· Somchai Jaidee</span></p>
+        <div class="pos-scan-row">
+          <div class="search-bar">🔍<input type="text" placeholder="ค้นหาสินค้า / SKU / ชื่อ"></div>
+          <button class="scan-btn">▦</button>
+        </div>
+      </div>
+
+      <div class="cart-item">
+        <div class="avatar" style="background:var(--info-tint);color:var(--info);">🖨️</div>
+        <div class="li-main"><p class="li-title">Canon GI-790 Black</p><p class="li-sub mono">฿350.00 / ชิ้น</p></div>
+        <div class="qty-ctrl"><button>−</button><span class="mono">2</span><button>+</button></div>
+      </div>
+      <div class="cart-item">
+        <div class="avatar" style="background:var(--info-tint);color:var(--info);">📄</div>
+        <div class="li-main"><p class="li-title">A4 Paper 80gsm (Ream)</p><p class="li-sub mono">฿120.00 / ชิ้น</p></div>
+        <div class="qty-ctrl"><button>−</button><span class="mono">1</span><button>+</button></div>
+      </div>
+
+      <div class="discount-row">
+        <span style="flex:1;font-weight:600;">🏷️ ส่วนลดด่วน</span>
+        <button class="qa-pill" style="padding:6px 10px;">5%</button>
+        <button class="qa-pill" style="padding:6px 10px;">10%</button>
+        <input type="text" placeholder="฿0" class="mono">
+      </div>
+
+      <div class="toggle-row">
+        <button class="toggle-pill on">รวม VAT (Included)</button>
+        <button class="toggle-pill">แยก VAT (Excluded)</button>
+        <button class="toggle-pill">ไม่มี VAT</button>
+      </div>
+
+      <div class="section-title" style="margin-top:16px;">วิธีชำระเงิน</div>
+      <div class="pay-grid">
+        <button class="pay-btn on">💵<span>เงินสด</span></button>
+        <button class="pay-btn">🏦<span>โอนเงิน</span></button>
+        <button class="pay-btn">📱<span>QR พร้อมเพย์</span></button>
+        <button class="pay-btn">📋<span>เครดิต</span></button>
+      </div>
+    </div>
+    <div class="pos-summary">
+      <div class="sum-row"><span>ยอดรวม</span><span class="mono">฿ 820.00</span></div>
+      <div class="sum-row"><span>ส่วนลด</span><span class="mono">− ฿ 0.00</span></div>
+      <div class="sum-row"><span>VAT 7% (รวมแล้ว)</span><span class="mono">฿ 57.40</span></div>
+      <div class="sum-row total"><span>ยอดสุทธิ</span><span class="mono">฿ 820.00</span></div>
+      <button class="btn-primary">ยืนยันการขาย</button>
+      <button class="print-btn">🖨️ พิมพ์ใบเสร็จจากมือถือ</button>
+    </div>
+  </div>
+
+  <!-- CUSTOMERS -->
+  <div class="screen" id="screen-customers">
+    <div class="content" id="customers-list">
+      <h1 class="page-title">ลูกค้า</h1>
+      <p class="page-sub">248 รายชื่อ</p>
+      <div class="list-toolbar">
+        <div class="search-bar">🔍<input type="text" placeholder="ค้นหาชื่อ / เบอร์ / QR"></div>
+        <button class="tb-icon">▤</button>
+        <button class="tb-icon">↕️</button>
+        <button class="tb-icon" id="cust-select-toggle" onclick="toggleSelect('customers-list')">☑️</button>
+      </div>
+      <div class="filter-chips">
+        <button class="fchip active">ทั้งหมด</button><button class="fchip">B2C</button><button class="fchip">B2B</button>
+        <button class="fchip">ราชการ</button><button class="fchip">มีค้างชำระ</button><button class="fchip">ลูกค้าเครดิต</button>
+      </div>
+
+      <div class="list-item" onclick="go2('customers-list','customer-detail')"><div class="chk"></div><div class="avatar">SJ</div><div class="li-main"><p class="li-title">Somchai Jaidee</p><p class="li-sub">081-234-5001 · B2C</p></div><span class="badge success">฿0</span></div>
+      <div class="list-item" onclick="go2('customers-list','customer-detail')"><div class="chk"></div><div class="avatar">NS</div><div class="li-main"><p class="li-title">Nattaya Suksawat</p><p class="li-sub">081-234-5002 · B2C</p></div><span class="badge success">฿0</span></div>
+      <div class="list-item" onclick="go2('customers-list','customer-detail')"><div class="chk"></div><div class="avatar" style="background:var(--warning-tint);color:var(--warning);">BP</div><div class="li-main"><p class="li-title">Bangkok Print Supplies</p><p class="li-sub">02-123-4503 · B2B · เครดิต 30 วัน</p></div><span class="badge danger mono">฿6,350</span></div>
+      <div class="list-item"><div class="chk"></div><div class="avatar" style="background:var(--info-tint);color:var(--info);">SO</div><div class="li-main"><p class="li-title">Siam Office Solutions</p><p class="li-sub">02-123-4504 · B2B · เครดิต 15 วัน</p></div><span class="badge success">฿0</span></div>
+      <div class="list-item"><div class="chk"></div><div class="avatar" style="background:var(--info-tint);color:var(--info);">ED</div><div class="li-main"><p class="li-title">District Education Office</p><p class="li-sub">02-123-4505 · ราชการ</p></div><span class="badge success">฿0</span></div>
+      <p class="infinite-hint">กำลังโหลดเพิ่มเติม... (Infinite scroll)</p>
+      <div class="select-bar" id="customers-list-bar">
+        <span>เลือกแล้ว 2 รายการ</span>
+        <div style="display:flex;gap:6px;"><button>ส่ง LINE</button><button>ส่งออก CSV</button><button style="background:var(--danger);">ลบ</button></div>
+      </div>
+    </div>
+
+    <div class="content" id="customer-detail" style="display:none;">
+      <div class="back-row" onclick="back2('customers-list','customer-detail')">← กลับ</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+        <div class="avatar" style="width:56px;height:56px;font-size:18px;">SJ</div>
+        <div><p style="font-weight:700;font-size:17px;margin:0;">Somchai Jaidee</p><p style="color:var(--text-2);font-size:12.5px;margin:2px 0 0;">081-234-5001 · B2C</p></div>
+      </div>
+      <div class="qa-row">
+        <button class="qa-pill" onclick="go('invoice')">+ ขายสินค้า</button>
+        <button class="qa-pill" onclick="go('repair')">+ รับซ่อม</button>
+        <button class="qa-pill">📞 โทร</button>
+        <button class="qa-pill">💬 LINE</button>
+      </div>
+      <div class="grid2">
+        <div class="stat-card"><div class="label">ยอดซื้อสะสม</div><div class="value mono" style="font-size:16px;">฿6,240</div></div>
+        <div class="stat-card"><div class="label">ยอดค้างชำระ</div><div class="value mono" style="font-size:16px;color:var(--success);">฿0</div></div>
+      </div>
+      <div class="section-title">📋 ใบแจ้งหนี้ค้างชำระ<span class="link">ดูทั้งหมด</span></div>
+      <p style="font-size:12.5px;color:var(--text-2);">ไม่มีรายการค้างชำระ</p>
+
+      <div class="ai-card" style="margin:12px 0;">
+        <div class="ai-title">✨ AI แนะนำสินค้าที่น่าเสนอ</div>
+        <div class="related-chips" style="margin-top:2px;">
+          <span class="related-chip" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3);">หมึก Canon GI-790 (ใกล้หมดตามรอบซื้อ)</span>
+          <span class="related-chip" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3);">กระดาษ A4</span>
+        </div>
+      </div>
+
+      <div class="section-title">ประวัติการซื้อ</div>
+      <div class="card-box"><div class="kv"><span class="k">IV-2026-000042</span><span class="v mono">฿481.50</span></div><div class="kv"><span class="k">IV-2026-000018</span><span class="v mono">฿1,200.00</span></div></div>
+      <div class="section-title">ประวัติงานซ่อม</div>
+      <div class="card-box"><div class="kv"><span class="k">RPQR-0001 · Canon G3010</span><span class="v"><span class="badge success">เสร็จสิ้น</span></span></div></div>
+
+      <div class="section-title">📎 ไฟล์แนบ</div>
+      <div class="attach-row"><div class="attach-thumb">🖼️</div><div class="attach-thumb">🖼️</div><div class="attach-thumb add">+</div></div>
+
+      <div class="section-title">🕘 Activity Log</div>
+      <div class="card-box">
+        <div class="activity-row"><span class="ic">🧾</span><div><div>สร้างใบแจ้งหนี้ IV-2026-000042</div><div class="d">17 ก.ค. 14:02 · แคชเชียร์</div></div></div>
+        <div class="activity-row"><span class="ic">✏️</span><div><div>แก้ไขข้อมูลติดต่อ</div><div class="d">10 ก.ค. 09:15 · Sales</div></div></div>
+      </div>
+
+      <div class="section-title">🔗 ข้อมูลที่เกี่ยวข้อง</div>
+      <div class="related-chips"><span class="related-chip">🖨️ เครื่องพิมพ์ 2 เครื่อง</span><span class="related-chip">🔧 งานซ่อม 3 ครั้ง</span><span class="related-chip">🧾 ใบแจ้งหนี้ 5 ใบ</span></div>
+    </div>
+    <div class="bottomnav">
+      <div class="navitem" onclick="go('dashboard')">🏠<span>หน้าหลัก</span></div>
+      <div class="navitem active">👤<span>ลูกค้า</span></div>
+      <div class="navitem" onclick="go('invoice')">🧾<span>ขาย</span></div>
+      <div class="navitem" onclick="go('inventory')">📦<span>คลัง</span></div>
+      <div class="navitem">☰<span>เพิ่มเติม</span></div>
+    </div>
+  </div>
+
+  <!-- PRINTER MASTER -->
+  <div class="screen" id="screen-printers">
+    <div class="content" id="printers-list">
+      <h1 class="page-title">เครื่องพิมพ์ลูกค้า (Printer Master)</h1>
+      <p class="page-sub">312 เครื่อง</p>
+      <div class="list-toolbar">
+        <div class="search-bar">🔍<input type="text" placeholder="ค้นหา Serial / รุ่น / ลูกค้า"></div>
+        <button class="tb-icon">▤</button>
+        <button class="tb-icon">↕️</button>
+        <button class="tb-icon">▦</button>
+      </div>
+      <div class="filter-chips"><button class="fchip active">ทั้งหมด</button><button class="fchip">มีประกัน</button><button class="fchip">หมดประกัน</button><button class="fchip">Canon</button><button class="fchip">Epson</button></div>
+
+      <div class="list-item" onclick="go2('printers-list','printer-detail')"><div class="avatar">🖨️</div><div class="li-main"><p class="li-title">Canon PIXMA G3010</p><p class="li-sub">SN-DEMO-0001 · Somchai Jaidee</p></div><span class="badge success">มีประกัน</span></div>
+      <div class="list-item"><div class="avatar">🖨️</div><div class="li-main"><p class="li-title">Epson EcoTank L3250</p><p class="li-sub">SN-DEMO-0002 · Nattaya Suksawat</p></div><span class="badge danger">หมดประกัน</span></div>
+      <p class="infinite-hint">กำลังโหลดเพิ่มเติม... (Infinite scroll)</p>
+    </div>
+    <div class="content" id="printer-detail" style="display:none;">
+      <div class="back-row" onclick="back2('printers-list','printer-detail')">← กลับ</div>
+      <div class="card-box">
+        <div class="kv"><span class="k">รุ่น</span><span class="v">Canon PIXMA G3010</span></div>
+        <div class="kv"><span class="k">Serial Number</span><span class="v mono">SN-DEMO-0001</span></div>
+        <div class="kv"><span class="k">ลูกค้าเจ้าของ</span><span class="v">Somchai Jaidee</span></div>
+        <div class="kv"><span class="k">วันที่ซื้อ</span><span class="v">05 มิ.ย. 2026</span></div>
+        <div class="kv"><span class="k">ประกัน</span><span class="v"><span class="badge success">ถึง 05 มิ.ย. 2027</span></span></div>
+      </div>
+      <div class="section-title">ประวัติการซ่อม</div>
+      <div class="timeline">
+        <div class="tl-item"><div class="tl-dot"></div><div class="tl-body"><div class="t">RPQR-0001 — เปลี่ยนลูกกลิ้งดึงกระดาษ</div><div class="d">17 ก.ค. 2026 · เสร็จสิ้น</div></div></div>
+      </div>
+      <div class="section-title">ประวัติอะไหล่ที่เปลี่ยน</div>
+      <div class="card-box"><div class="kv"><span class="k">Print Head Unit</span><span class="v mono">1 ชิ้น</span></div></div>
+      <div class="section-title">🔗 ข้อมูลที่เกี่ยวข้อง</div>
+      <div class="related-chips"><span class="related-chip" onclick="go('customers')">👤 Somchai Jaidee</span><span class="related-chip">🧾 ใบเสร็จซื้อเครื่อง</span></div>
+    </div>
+    <div class="bottomnav">
+      <div class="navitem" onclick="go('dashboard')">🏠<span>หน้าหลัก</span></div>
+      <div class="navitem" onclick="go('customers')">👤<span>ลูกค้า</span></div>
+      <div class="navitem active">🖨️<span>เครื่องพิมพ์</span></div>
+      <div class="navitem" onclick="go('inventory')">📦<span>คลัง</span></div>
+      <div class="navitem">☰<span>เพิ่มเติม</span></div>
+    </div>
+  </div>
+
+  <!-- INVENTORY -->
+  <div class="screen" id="screen-inventory">
+    <div class="content">
+      <h1 class="page-title">คลังสินค้า</h1>
+      <p class="page-sub">3,240 SKU · 4 รายการสต๊อกต่ำ</p>
+      <div class="list-toolbar">
+        <div class="search-bar">🔍<input type="text" placeholder="ค้นหา / สแกน SKU, Barcode, QR"></div>
+        <button class="tb-icon">↕️</button>
+        <div class="grid-toggle"><button class="tb-icon on" id="gv-grid" onclick="setInvView('grid')">▦</button><button class="tb-icon" id="gv-list" onclick="setInvView('list')">▤</button></div>
+      </div>
+      <div class="filter-chips"><button class="fchip active">ทั้งหมด</button><button class="fchip">เครื่องพิมพ์</button><button class="fchip">หมึก</button><button class="fchip">โทนเนอร์</button><button class="fchip">อะไหล่</button><button class="fchip" style="color:var(--warning);border-color:var(--warning);">สต๊อกต่ำ</button></div>
+
+      <div class="product-grid" id="inv-grid">
+        <div class="pcard"><div class="img">🖨️</div><div class="body"><p class="name">Canon PIXMA G3010</p><p style="font-size:10.5px;color:var(--text-2);margin:0;">Canon · Shopee Mall</p><div class="price-row"><span class="sell mono">฿4,990</span><span class="badge success" style="font-size:9px;padding:2px 6px;">คงเหลือ 5</span></div><p class="profit mono">กำไร/ชิ้น ฿490</p></div></div>
+        <div class="pcard"><div class="img">🧴</div><div class="body"><p class="name">Canon GI-790 Black</p><p style="font-size:10.5px;color:var(--text-2);margin:0;">Canon · Distributor</p><div class="price-row"><span class="sell mono">฿350</span><span class="badge warn" style="font-size:9px;padding:2px 6px;">คงเหลือ 3</span></div><p class="profit mono">กำไร/ชิ้น ฿170</p></div></div>
+        <div class="pcard"><div class="img">🖨️</div><div class="body"><p class="name">Epson EcoTank L3250</p><p style="font-size:10.5px;color:var(--text-2);margin:0;">Epson · Dealer</p><div class="price-row"><span class="sell mono">฿5,590</span><span class="badge success" style="font-size:9px;padding:2px 6px;">คงเหลือ 4</span></div><p class="profit mono">กำไร/ชิ้น ฿590</p></div></div>
+        <div class="pcard"><div class="img">📄</div><div class="body"><p class="name">A4 Paper 80gsm</p><p style="font-size:10.5px;color:var(--text-2);margin:0;">— · Shopee</p><div class="price-row"><span class="sell mono">฿120</span><span class="badge success" style="font-size:9px;padding:2px 6px;">คงเหลือ 42</span></div><p class="profit mono">กำไร/ชิ้น ฿35</p></div></div>
+      </div>
+      <div id="inv-list" style="display:none;">
+        <div class="list-item"><div class="avatar">🖨️</div><div class="li-main"><p class="li-title">Canon PIXMA G3010</p><p class="li-sub mono">ต้นทุน ฿4,500 → ขาย ฿4,990 (Canon · Shopee Mall)</p></div><span class="badge success">5</span></div>
+        <div class="list-item"><div class="avatar">🧴</div><div class="li-main"><p class="li-title">Canon GI-790 Black</p><p class="li-sub mono">ต้นทุน ฿180 → ขาย ฿350 (Canon · Distributor)</p></div><span class="badge warn">3</span></div>
+      </div>
+      <p class="infinite-hint">กำลังโหลดเพิ่มเติม... (Infinite scroll)</p>
+    </div>
+    <div class="bottomnav">
+      <div class="navitem" onclick="go('dashboard')">🏠<span>หน้าหลัก</span></div>
+      <div class="navitem" onclick="go('customers')">👤<span>ลูกค้า</span></div>
+      <div class="navitem" onclick="go('invoice')">🧾<span>ขาย</span></div>
+      <div class="navitem active">📦<span>คลัง</span></div>
+      <div class="navitem">☰<span>เพิ่มเติม</span></div>
+    </div>
+  </div>
+
+  <!-- PURCHASE (OCR) -->
+  <div class="screen" id="screen-purchase">
+    <div class="content">
+      <h1 class="page-title">รับสินค้า / บันทึกซื้อ</h1>
+      <p class="page-sub">ถ่ายรูปใบเสร็จ ให้ AI กรอกให้อัตโนมัติ</p>
+
+      <div class="upload-box">
+        <div style="font-size:32px;">📷</div>
+        <p style="font-weight:700;margin:8px 0 2px;">ถ่ายรูป / อัปโหลดใบเสร็จ</p>
+        <p style="font-size:12px;color:var(--text-2);margin:0;">รองรับ JPG, PNG, PDF</p>
+      </div>
+
+      <div class="ocr-preview">
+        <div class="thumb"></div>
+        <div style="flex:1;">
+          <div style="display:flex;justify-content:space-between;align-items:center;"><b style="font-size:13px;">ผลอ่านจาก AI OCR</b><span class="ocr-badge">ความมั่นใจ 94%</span></div>
+          <p style="font-size:12px;color:var(--text-2);margin:6px 0 0;">Canon Thailand Distribution · 17/07/2026 · ฿4,815.00</p>
+        </div>
+      </div>
+
+      <div class="dup-warning">⚠️ <div><b>อาจซ้ำกับใบสั่งซื้อ PO-2026-000012</b><br>ซัพพลายเออร์และยอดใกล้เคียงกัน วันที่ 15/07/2026 — โปรดตรวจสอบก่อนบันทึก</div></div>
+
+      <div class="section-title" style="margin-top:4px;">รายการสินค้า (จับคู่อัตโนมัติ)</div>
+      <div class="cart-item">
+        <div class="avatar" style="background:var(--success-tint);color:var(--success);">✓</div>
+        <div class="li-main"><p class="li-title">Canon PIXMA G3010</p><p class="li-sub mono">5 × ฿4,500.00</p></div>
+        <span class="badge success" style="font-size:9px;">จับคู่แล้ว</span>
+      </div>
+      <div class="cart-item">
+        <div class="avatar" style="background:var(--warning-tint);color:var(--warning);">?</div>
+        <div class="li-main"><p class="li-title">GI-790 BK (สินค้าใหม่?)</p><p class="li-sub mono">30 × ฿350.00</p></div>
+        <span class="badge warn" style="font-size:9px;">ยืนยันสินค้า</span>
+      </div>
+
+      <div class="profit-preview">
+        <p style="font-weight:700;font-size:13px;margin:0 0 6px;">👁️ ตัวอย่างกำไรหลังบันทึก</p>
+        <div class="row"><span>ต้นทุนรวม</span><span class="mono">฿4,815.00</span></div>
+        <div class="row"><span>ราคาขายประเมิน (จาก Price List)</span><span class="mono">฿6,200.00</span></div>
+        <div class="row total"><span>กำไรที่คาดว่าจะได้</span><span class="mono">฿1,385.00</span></div>
+      </div>
+
+      <button class="btn-primary">✓ ยืนยันและบันทึกการซื้อ</button>
+      <button class="btn-block" style="background:#fff;border:1.5px solid var(--border);margin-top:8px;">แก้ไขข้อมูลด้วยตนเอง</button>
+    </div>
+    <div class="bottomnav">
+      <div class="navitem" onclick="go('dashboard')">🏠<span>หน้าหลัก</span></div>
+      <div class="navitem" onclick="go('suppliers')">🏭<span>ซัพพลายเออร์</span></div>
+      <div class="navitem active">📷<span>รับสินค้า</span></div>
+      <div class="navitem" onclick="go('inventory')">📦<span>คลัง</span></div>
+      <div class="navitem">☰<span>เพิ่มเติม</span></div>
+    </div>
+  </div>
+
+  <!-- SUPPLIERS -->
+  <div class="screen" id="screen-suppliers">
+    <div class="content" id="suppliers-list">
+      <h1 class="page-title">ซัพพลายเออร์</h1>
+      <p class="page-sub">28 ราย</p>
+      <div class="list-toolbar">
+        <div class="search-bar">🔍<input type="text" placeholder="ค้นหาชื่อซัพพลายเออร์"></div>
+        <button class="tb-icon">↕️</button>
+      </div>
+      <div class="filter-chips"><button class="fchip active">ทั้งหมด</button><button class="fchip">Distributor</button><button class="fchip">Dealer</button><button class="fchip">Shopee/Lazada</button></div>
+
+      <div class="list-item" onclick="go2('suppliers-list','supplier-detail')"><div class="avatar" style="background:var(--info-tint);color:var(--info);">CT</div><div class="li-main"><p class="li-title">Canon Thailand Distribution</p><p class="li-sub">Distributor · ซื้อล่าสุด 17 ก.ค.</p></div><span class="badge info">Lead 5 วัน</span></div>
+      <div class="list-item"><div class="avatar" style="background:var(--info-tint);color:var(--info);">EP</div><div class="li-main"><p class="li-title">Epson Authorized Dealer BKK</p><p class="li-sub">Dealer · ซื้อล่าสุด 10 ก.ค.</p></div><span class="badge info">Lead 3 วัน</span></div>
+      <p class="infinite-hint">กำลังโหลดเพิ่มเติม... (Infinite scroll)</p>
+    </div>
+    <div class="content" id="supplier-detail" style="display:none;">
+      <div class="back-row" onclick="back2('suppliers-list','supplier-detail')">← กลับ</div>
+      <p style="font-weight:700;font-size:17px;margin:0 0 12px;">Canon Thailand Distribution</p>
+      <div class="grid2">
+        <div class="stat-card"><div class="label">ต้นทุนเฉลี่ย/ออเดอร์</div><div class="value mono" style="font-size:16px;">฿12,400</div></div>
+        <div class="stat-card"><div class="label">Lead Time เฉลี่ย</div><div class="value" style="font-size:16px;">5 วัน</div></div>
+      </div>
+      <div class="ai-card" style="margin:12px 0;">
+        <div class="ai-title">✨ AI แนะนำการสั่งซื้อ</div>
+        <div class="related-chips"><span class="related-chip" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3);">ควรสั่ง Canon GI-790 เพิ่ม 40 ชิ้น ภายใน 3 วัน (สต๊อกต่ำ + Lead time 5 วัน)</span></div>
+      </div>
+      <div class="section-title">ประวัติการสั่งซื้อ</div>
+      <div class="card-box">
+        <div class="kv"><span class="k">PO-2026-000018</span><span class="v mono">฿4,815.00</span></div>
+        <div class="kv"><span class="k">PO-2026-000012</span><span class="v mono">฿9,200.00</span></div>
+      </div>
+      <div class="section-title">🔗 ข้อมูลที่เกี่ยวข้อง</div>
+      <div class="related-chips"><span class="related-chip" onclick="go('inventory')">📦 สินค้า 12 รายการ</span></div>
+    </div>
+    <div class="bottomnav">
+      <div class="navitem" onclick="go('dashboard')">🏠<span>หน้าหลัก</span></div>
+      <div class="navitem" onclick="go('purchase')">📷<span>รับสินค้า</span></div>
+      <div class="navitem active">🏭<span>ซัพพลายเออร์</span></div>
+      <div class="navitem" onclick="go('inventory')">📦<span>คลัง</span></div>
+      <div class="navitem">☰<span>เพิ่มเติม</span></div>
+    </div>
+  </div>
+
+  <!-- SALES DOCUMENTS (unified: Quotation / Delivery Note / Tax Invoice / Receipt) -->
+  <div class="screen" id="screen-docs">
+    <div class="content" id="docs-list">
+      <h1 class="page-title">เอกสารขาย</h1>
+      <p class="page-sub">หนึ่งหน้าเดียวสำหรับทุกประเภทเอกสาร — ตรงกับโครงสร้างฐานข้อมูล unified sales_documents</p>
+      <div class="list-toolbar">
+        <div class="search-bar">🔍<input type="text" placeholder="ค้นหาเลขที่เอกสาร / ลูกค้า"></div>
+        <button class="tb-icon">↕️</button>
+        <button class="tb-icon" onclick="toggleSelect('docs-list')">☑️</button>
+      </div>
+      <div class="filter-chips" id="doc-type-chips">
+        <button class="fchip active" data-doctype="all">ทั้งหมด</button>
+        <button class="fchip" data-doctype="quotation">ใบเสนอราคา (QT)</button>
+        <button class="fchip" data-doctype="delivery_note">ใบส่งของ (DN)</button>
+        <button class="fchip" data-doctype="invoice">ใบแจ้งหนี้ (IV)</button>
+        <button class="fchip" data-doctype="tax_invoice">ใบกำกับภาษี (TX)</button>
+        <button class="fchip" data-doctype="receipt">ใบเสร็จ (RC)</button>
+      </div>
+
+      <div class="list-item" onclick="go2('docs-list','doc-detail')"><div class="chk"></div><div class="avatar" style="background:var(--info-tint);color:var(--info);">QT</div><div class="li-main"><p class="li-title">QT-2026-000031</p><p class="li-sub">Siam Office Solutions · 17 ก.ค.</p></div><span class="badge info mono">฿8,400</span></div>
+      <div class="list-item"><div class="chk"></div><div class="avatar" style="background:var(--surface);color:var(--text-2);">DN</div><div class="li-main"><p class="li-title">DN-2026-000027</p><p class="li-sub">Bangkok Print Supplies · 16 ก.ค.</p></div><span class="badge mono" style="background:var(--surface);color:var(--text-2);">฿15,200</span></div>
+      <div class="list-item"><div class="chk"></div><div class="avatar" style="background:var(--success-tint);color:var(--success);">TX</div><div class="li-main"><p class="li-title">TX-2026-000042</p><p class="li-sub">Somchai Jaidee · 17 ก.ค.</p></div><span class="badge success mono">฿481.50</span></div>
+      <div class="list-item"><div class="chk"></div><div class="avatar" style="background:var(--success-tint);color:var(--success);">RC</div><div class="li-main"><p class="li-title">RC-2026-000042</p><p class="li-sub">Somchai Jaidee · 17 ก.ค.</p></div><span class="badge success mono">฿300.00</span></div>
+      <p class="infinite-hint">กำลังโหลดเพิ่มเติม... (Infinite scroll)</p>
+      <div class="select-bar" id="docs-list-bar"><span>เลือกแล้ว 2 รายการ</span><div style="display:flex;gap:6px;"><button>ส่งออก PDF</button><button style="background:var(--danger);">ยกเลิก</button></div></div>
+    </div>
+
+    <div class="content" id="doc-detail" style="display:none;">
+      <div class="back-row" onclick="back2('docs-list','doc-detail')">← กลับ</div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+        <div><p style="font-weight:700;font-size:18px;margin:0;" class="mono">QT-2026-000031</p><p style="color:var(--text-2);font-size:12.5px;margin:2px 0 0;">ใบเสนอราคา · Siam Office Solutions</p></div>
+        <span class="badge info">Draft</span>
+      </div>
+      <div class="card-box">
+        <div class="kv"><span class="k">วันที่</span><span class="v">17 ก.ค. 2026</span></div>
+        <div class="kv"><span class="k">รายการ</span><span class="v">Canon PIXMA G3010 × 1, A4 Paper × 10</span></div>
+        <div class="kv"><span class="k">ยอดรวม (รวม VAT)</span><span class="v mono">฿8,400.00</span></div>
+      </div>
+      <p style="font-size:12px;font-weight:700;color:var(--text-2);margin:14px 0 6px;">แปลงเป็นเอกสารอื่น (ไม่ต้องกรอกใหม่)</p>
+      <div class="qa-row">
+        <button class="qa-pill">→ ใบส่งของ (DN)</button>
+        <button class="qa-pill">→ ใบแจ้งหนี้ (IV)</button>
+        <button class="qa-pill">→ ใบกำกับภาษี (TX)</button>
+      </div>
+      <div class="section-title">📎 ไฟล์แนบ</div>
+      <div class="attach-row"><div class="attach-thumb add">+</div></div>
+      <div class="section-title">🕘 Activity Log</div>
+      <div class="card-box"><div class="activity-row"><span class="ic">📝</span><div><div>สร้างใบเสนอราคา</div><div class="d">17 ก.ค. 09:20 · Sales</div></div></div></div>
+      <div class="section-title">🔗 ข้อมูลที่เกี่ยวข้อง</div>
+      <div class="related-chips"><span class="related-chip" onclick="go2('docs-list','customer-detail')">👤 Siam Office Solutions</span></div>
+    </div>
+    <div class="bottomnav">
+      <div class="navitem" onclick="go('dashboard')">🏠<span>หน้าหลัก</span></div>
+      <div class="navitem" onclick="go('customers')">👤<span>ลูกค้า</span></div>
+      <div class="navitem active">🧾<span>เอกสาร</span></div>
+      <div class="navitem" onclick="go('credit')">💳<span>เครดิต</span></div>
+      <div class="navitem">☰<span>เพิ่มเติม</span></div>
+    </div>
+  </div>
+
+  <!-- CREDIT TERM -->
+  <div class="screen" id="screen-credit">
+    <div class="content" id="credit-list">
+      <h1 class="page-title">เครดิตเทอม / ลูกหนี้</h1>
+      <p class="page-sub">ยอดค้างชำระรวม <span class="mono" style="color:var(--danger);font-weight:700;">฿31,900</span></p>
+      <div class="list-toolbar">
+        <div class="search-bar">🔍<input type="text" placeholder="ค้นหาลูกค้า"></div>
+        <button class="tb-icon">↕️</button>
+      </div>
+      <div class="filter-chips"><button class="fchip active">ทั้งหมด</button><button class="fchip">30 วัน</button><button class="fchip">60 วัน</button><button class="fchip">90 วัน</button><button class="fchip" style="color:var(--danger);border-color:var(--danger);">เกิน 120 วัน</button></div>
+
+      <div class="list-item" onclick="go2('credit-list','credit-detail')">
+        <div class="avatar" style="background:var(--warning-tint);color:var(--warning);">BP</div>
+        <div class="li-main"><p class="li-title">Bangkok Print Supplies</p><p class="li-sub">วงเงิน ฿100,000 · ใช้ไป 6%</p></div>
+        <div style="text-align:right;"><span class="mono" style="font-weight:700;">฿6,350</span><br><span class="aging-pill aging-30">30 วัน</span></div>
+      </div>
+      <div class="list-item">
+        <div class="avatar" style="background:var(--danger-tint);color:var(--danger);">ED</div>
+        <div class="li-main"><p class="li-title">District Education Office</p><p class="li-sub">วงเงิน ฿200,000 · ใช้ไป 13%</p></div>
+        <div style="text-align:right;"><span class="mono" style="font-weight:700;">฿25,550</span><br><span class="aging-pill aging-90">90 วัน</span></div>
+      </div>
+      <p class="infinite-hint">กำลังโหลดเพิ่มเติม... (Infinite scroll)</p>
+    </div>
+
+    <div class="content" id="credit-detail" style="display:none;">
+      <div class="back-row" onclick="back2('credit-list','credit-detail')">← กลับ</div>
+      <p style="font-weight:700;font-size:17px;margin:0 0 4px;">Bangkok Print Supplies</p>
+      <p style="color:var(--text-2);font-size:12.5px;margin:0 0 14px;">เครดิตเทอม 30 วัน · วงเงิน ฿100,000</p>
+
+      <div class="card-box">
+        <p style="font-size:12px;font-weight:700;color:var(--text-2);margin:0 0 8px;">Credit Aging</p>
+        <div style="display:flex;gap:6px;">
+          <div style="flex:1;text-align:center;"><span class="aging-pill aging-30">30 วัน</span><p class="mono" style="font-size:13px;font-weight:700;margin:6px 0 0;">฿6,350</p></div>
+          <div style="flex:1;text-align:center;"><span class="aging-pill aging-60">60 วัน</span><p class="mono" style="font-size:13px;font-weight:700;margin:6px 0 0;">฿0</p></div>
+          <div style="flex:1;text-align:center;"><span class="aging-pill aging-90">90 วัน</span><p class="mono" style="font-size:13px;font-weight:700;margin:6px 0 0;">฿0</p></div>
+          <div style="flex:1;text-align:center;"><span class="aging-pill aging-120">120+ วัน</span><p class="mono" style="font-size:13px;font-weight:700;margin:6px 0 0;">฿0</p></div>
+        </div>
+      </div>
+
+      <button class="btn-primary" style="margin:12px 0;">+ บันทึกการชำระเงิน</button>
+
+      <div class="section-title">ใบแจ้งหนี้ค้างชำระ</div>
+      <div class="list-item"><div class="avatar" style="background:var(--danger-tint);color:var(--danger);">IV</div><div class="li-main"><p class="li-title">IV-2026-000038</p><p class="li-sub">ครบกำหนด 20 ก.ค. 2026</p></div><span class="badge danger mono">฿6,350</span></div>
+
+      <div class="section-title">🕘 ประวัติการชำระ</div>
+      <div class="card-box"><div class="activity-row"><span class="ic">💵</span><div><div>ชำระ ฿5,000 (โอนเงิน)</div><div class="d">10 ก.ค. 2026</div></div></div></div>
+    </div>
+    <div class="bottomnav">
+      <div class="navitem" onclick="go('dashboard')">🏠<span>หน้าหลัก</span></div>
+      <div class="navitem" onclick="go('customers')">👤<span>ลูกค้า</span></div>
+      <div class="navitem" onclick="go('docs')">🧾<span>เอกสาร</span></div>
+      <div class="navitem active">💳<span>เครดิต</span></div>
+      <div class="navitem">☰<span>เพิ่มเติม</span></div>
+    </div>
+  </div>
+
+  <!-- REPORTS / ANALYTICS CENTER -->
+  <div class="screen" id="screen-reports">
+    <div class="content" id="reports-list">
+      <h1 class="page-title">ศูนย์รายงาน (Analytics Center)</h1>
+      <p class="page-sub">11 รายงาน — แตะเพื่อดูรายละเอียด</p>
+      <div class="report-grid">
+        <div class="report-tile" onclick="go2('reports-list','report-detail')"><div class="ic">📊</div><div class="t">Executive</div></div>
+        <div class="report-tile" onclick="go2('reports-list','report-detail')"><div class="ic">💰</div><div class="t">ยอดขาย</div></div>
+        <div class="report-tile" onclick="go2('reports-list','report-detail')"><div class="ic">📈</div><div class="t">กำไร</div></div>
+        <div class="report-tile" onclick="go2('reports-list','report-detail')"><div class="ic">💸</div><div class="t">รายจ่าย</div></div>
+        <div class="report-tile" onclick="go2('reports-list','report-detail')"><div class="ic">🛒</div><div class="t">การซื้อ</div></div>
+        <div class="report-tile" onclick="go2('reports-list','report-detail')"><div class="ic">📦</div><div class="t">สต๊อก</div></div>
+        <div class="report-tile" onclick="go2('reports-list','report-detail')"><div class="ic">🔧</div><div class="t">งานซ่อม</div></div>
+        <div class="report-tile" onclick="go2('reports-list','report-detail')"><div class="ic">👤</div><div class="t">ลูกค้า</div></div>
+        <div class="report-tile" onclick="go2('reports-list','report-detail')"><div class="ic">💳</div><div class="t">เครดิตเทอม</div></div>
+        <div class="report-tile" onclick="go2('reports-list','report-detail')"><div class="ic">🧾</div><div class="t">VAT</div></div>
+        <div class="report-tile" onclick="go2('reports-list','report-detail')"><div class="ic">🌊</div><div class="t">กระแสเงินสด</div></div>
+      </div>
+      <p style="font-size:11.5px;color:var(--text-2);">ทุกรายงานใช้ toolbar เดียวกัน: Filter · Export PDF · Export Excel · Print · Schedule — แตะรายงานใดก็ได้เพื่อดูตัวอย่าง</p>
+    </div>
+
+    <div class="content" id="report-detail" style="display:none;">
+      <div class="back-row" onclick="back2('reports-list','report-detail')">← กลับ</div>
+      <h1 class="page-title">รายงานยอดขาย</h1>
+      <div class="list-toolbar">
+        <button class="fchip active" style="height:38px;">📅 ก.ค. 2026</button>
+        <button class="tb-icon">⚙️ Filter</button>
+      </div>
+      <div class="chart-mock">
+        <div class="bar" style="height:40%;"></div><div class="bar" style="height:65%;"></div><div class="bar" style="height:50%;"></div>
+        <div class="bar" style="height:80%;"></div><div class="bar" style="height:55%;"></div><div class="bar" style="height:90%;background:var(--primary-hover);"></div>
+        <div class="bar" style="height:70%;"></div>
+      </div>
+      <div class="card-box">
+        <div class="kv"><span class="k">ยอดขายรวมเดือนนี้</span><span class="v mono">฿284,900</span></div>
+        <div class="kv"><span class="k">จำนวนบิล</span><span class="v">142 บิล</span></div>
+        <div class="kv"><span class="k">ค่าเฉลี่ยต่อบิล</span><span class="v mono">฿2,006</span></div>
+      </div>
+      <div class="report-actions">
+        <button>📄 PDF</button><button>📊 Excel</button><button>🖨️ พิมพ์</button><button>⏰ ตั้งเวลาส่ง</button>
+      </div>
+    </div>
+    <div class="bottomnav">
+      <div class="navitem" onclick="go('dashboard')">🏠<span>หน้าหลัก</span></div>
+      <div class="navitem" onclick="go('credit')">💳<span>เครดิต</span></div>
+      <div class="navitem active">📊<span>รายงาน</span></div>
+      <div class="navitem" onclick="go('settings')">⚙️<span>ตั้งค่า</span></div>
+      <div class="navitem">☰<span>เพิ่มเติม</span></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="screen" id="screen-settings">
+    <div class="content" id="settings-list">
+      <h1 class="page-title">ตั้งค่าระบบ</h1>
+      <div class="settings-cat" onclick="go2('settings-list','settings-general')"><div class="ic">⚙️</div><div><p style="margin:0;font-weight:700;font-size:13.5px;">General</p><p style="margin:0;font-size:11px;color:var(--text-2);">ภาษา, สกุลเงิน, เขตเวลา</p></div><span class="chv">›</span></div>
+      <div class="settings-cat" onclick="go2('settings-list','settings-company')"><div class="ic">🏢</div><div><p style="margin:0;font-weight:700;font-size:13.5px;">Company / Branch</p><p style="margin:0;font-size:11px;color:var(--text-2);">ข้อมูลบริษัท, สาขา, คลัง</p></div><span class="chv">›</span></div>
+      <div class="settings-cat"><div class="ic">🔢</div><div><p style="margin:0;font-weight:700;font-size:13.5px;">Document</p><p style="margin:0;font-size:11px;color:var(--text-2);">เลขที่เอกสาร, Prefix</p></div><span class="chv">›</span></div>
+      <div class="settings-cat"><div class="ic">🧾</div><div><p style="margin:0;font-weight:700;font-size:13.5px;">Tax / VAT</p><p style="margin:0;font-size:11px;color:var(--text-2);">อัตราภาษี, เลขผู้เสียภาษี</p></div><span class="chv">›</span></div>
+      <div class="settings-cat"><div class="ic">🖨️</div><div><p style="margin:0;font-weight:700;font-size:13.5px;">Printer</p><p style="margin:0;font-size:11px;color:var(--text-2);">ขนาดกระดาษ, เครื่องพิมพ์</p></div><span class="chv">›</span></div>
+      <div class="settings-cat"><div class="ic">🔔</div><div><p style="margin:0;font-weight:700;font-size:13.5px;">Notification</p><p style="margin:0;font-size:11px;color:var(--text-2);">ช่องทางแจ้งเตือน</p></div><span class="chv">›</span></div>
+      <div class="settings-cat" onclick="go2('settings-list','settings-line')"><div class="ic">💬</div><div><p style="margin:0;font-weight:700;font-size:13.5px;">LINE OA</p><p style="margin:0;font-size:11px;color:var(--text-2);">เชื่อมต่อ, ข้อความอัตโนมัติ</p></div><span class="chv">›</span></div>
+      <div class="settings-cat"><div class="ic">✨</div><div><p style="margin:0;font-weight:700;font-size:13.5px;">AI</p><p style="margin:0;font-size:11px;color:var(--text-2);">OCR, Assistant, Forecast</p></div><span class="chv">›</span></div>
+      <div class="settings-cat" onclick="go('users')"><div class="ic">👥</div><div><p style="margin:0;font-weight:700;font-size:13.5px;">Users</p><p style="margin:0;font-size:11px;color:var(--text-2);">พนักงาน, บทบาท</p></div><span class="chv">›</span></div>
+      <div class="settings-cat"><div class="ic">🔒</div><div><p style="margin:0;font-weight:700;font-size:13.5px;">Security</p><p style="margin:0;font-size:11px;color:var(--text-2);">รหัสผ่าน, 2FA, Session</p></div><span class="chv">›</span></div>
+      <div class="settings-cat"><div class="ic">💾</div><div><p style="margin:0;font-weight:700;font-size:13.5px;">Backup</p><p style="margin:0;font-size:11px;color:var(--text-2);">สำรองข้อมูล, กู้คืน</p></div><span class="chv">›</span></div>
+      <div class="settings-cat" onclick="go('health')"><div class="ic">🩺</div><div><p style="margin:0;font-weight:700;font-size:13.5px;">Storage / System Health</p><p style="margin:0;font-size:11px;color:var(--text-2);">พื้นที่จัดเก็บ, สถานะระบบ</p></div><span class="chv">›</span></div>
+    </div>
+
+    <div class="content" id="settings-general" style="display:none;">
+      <div class="back-row" onclick="back2('settings-list','settings-general')">← กลับ</div>
+      <h1 class="page-title">General</h1>
+      <div class="card-box">
+        <div class="setting-row"><span>ภาษา</span><span class="v">ไทย</span></div>
+        <div class="setting-row"><span>สกุลเงิน</span><span class="v">THB (฿)</span></div>
+        <div class="setting-row"><span>เขตเวลา</span><span class="v">Asia/Bangkok</span></div>
+        <div class="setting-row"><span>ปฏิทิน</span><span class="v">พ.ศ. / ค.ศ.</span></div>
+      </div>
+    </div>
+    <div class="content" id="settings-company" style="display:none;">
+      <div class="back-row" onclick="back2('settings-list','settings-company')">← กลับ</div>
+      <h1 class="page-title">Company / Branch</h1>
+      <div class="card-box">
+        <div class="setting-row"><span>ชื่อบริษัท</span><span class="v">WASAN Printer Co., Ltd.</span></div>
+        <div class="setting-row"><span>เลขผู้เสียภาษี</span><span class="v mono">0-1055-xxxxx-x</span></div>
+        <div class="setting-row"><span>สาขา</span><span class="v">Head Office (HQ)</span></div>
+        <div class="setting-row"><span>คลังสินค้า</span><span class="v">Main Warehouse</span></div>
+      </div>
+    </div>
+    <div class="content" id="settings-line" style="display:none;">
+      <div class="back-row" onclick="back2('settings-list','settings-line')">← กลับ</div>
+      <h1 class="page-title">LINE Official Account</h1>
+      <div class="card-box">
+        <div class="setting-row"><span>สถานะการเชื่อมต่อ</span><span class="badge success">เชื่อมต่อแล้ว</span></div>
+        <div class="setting-row"><span>แจ้งเตือนสถานะซ่อม</span><div class="toggle-switch on"></div></div>
+        <div class="setting-row"><span>แจ้งเตือนค้างชำระ</span><div class="toggle-switch on"></div></div>
+        <div class="setting-row"><span>ข้อความการตลาด</span><div class="toggle-switch"></div></div>
+      </div>
+    </div>
+    <div class="bottomnav">
+      <div class="navitem" onclick="go('dashboard')">🏠<span>หน้าหลัก</span></div>
+      <div class="navitem" onclick="go('reports')">📊<span>รายงาน</span></div>
+      <div class="navitem active">⚙️<span>ตั้งค่า</span></div>
+      <div class="navitem" onclick="go('users')">👥<span>ผู้ใช้</span></div>
+      <div class="navitem">☰<span>เพิ่มเติม</span></div>
+    </div>
+  </div>
+
+  <!-- USER MANAGEMENT / ROLE PREVIEW -->
+  <div class="screen" id="screen-users">
+    <div class="content">
+      <h1 class="page-title">ผู้ใช้งาน &amp; บทบาท</h1>
+      <p class="page-sub">แตะบทบาทเพื่อดูตัวอย่างสิ่งที่มองเห็นจริง</p>
+      <div class="role-scroller" id="roleScroller">
+        <div class="role-tile active" data-role="Owner" onclick="previewRole(this)"><div class="ic">👑</div><div class="n">Owner</div></div>
+        <div class="role-tile" data-role="Manager" onclick="previewRole(this)"><div class="ic">🧑‍💼</div><div class="n">Manager</div></div>
+        <div class="role-tile" data-role="Technician" onclick="previewRole(this)"><div class="ic">🔧</div><div class="n">Technician</div></div>
+        <div class="role-tile" data-role="Sales" onclick="previewRole(this)"><div class="ic">🛍️</div><div class="n">Sales</div></div>
+        <div class="role-tile" data-role="Cashier" onclick="previewRole(this)"><div class="ic">💵</div><div class="n">Cashier</div></div>
+        <div class="role-tile" data-role="Warehouse" onclick="previewRole(this)"><div class="ic">📦</div><div class="n">Warehouse</div></div>
+      </div>
+
+      <div class="preview-banner" id="roleBanner">👁️ กำลังพรีวิวมุมมองของ: <b style="margin-left:4px;">Owner</b></div>
+
+      <p style="font-size:12px;font-weight:700;color:var(--text-2);margin:0 0 6px;">สิทธิ์การเข้าถึง (จาก role_permissions)</p>
+      <div class="card-box" id="permList">
+        <div class="perm-row"><span class="yes">✔</span><span>ดู Dashboard การเงิน/กำไร</span></div>
+        <div class="perm-row"><span class="yes">✔</span><span>สร้าง/แก้ไข ลูกค้า</span></div>
+        <div class="perm-row"><span class="yes">✔</span><span>จัดการงานซ่อม</span></div>
+        <div class="perm-row"><span class="yes">✔</span><span>ดูรายงานการเงิน</span></div>
+        <div class="perm-row"><span class="yes">✔</span><span>จัดการผู้ใช้ / บทบาท</span></div>
+        <div class="perm-row"><span class="yes">✔</span><span>ตั้งค่าระบบ</span></div>
+      </div>
+
+      <p style="font-size:12px;font-weight:700;color:var(--text-2);margin:14px 0 6px;">พนักงาน</p>
+      <div class="list-item"><div class="avatar">SC</div><div class="li-main"><p class="li-title">สมชาย ใจดี</p><p class="li-sub">Owner · Head Office</p></div><span class="badge success">ใช้งานอยู่</span></div>
+      <div class="list-item"><div class="avatar">NS</div><div class="li-main"><p class="li-title">Nattaya (ช่าง)</p><p class="li-sub">Technician · Head Office</p></div><span class="badge success">ใช้งานอยู่</span></div>
+    </div>
+    <div class="bottomnav">
+      <div class="navitem" onclick="go('dashboard')">🏠<span>หน้าหลัก</span></div>
+      <div class="navitem" onclick="go('settings')">⚙️<span>ตั้งค่า</span></div>
+      <div class="navitem active">👥<span>ผู้ใช้</span></div>
+      <div class="navitem" onclick="go('audit')">📜<span>Audit</span></div>
+      <div class="navitem">☰<span>เพิ่มเติม</span></div>
+    </div>
+  </div>
+
+  <!-- SYSTEM HEALTH -->
+  <div class="screen" id="screen-health">
+    <div class="content">
+      <h1 class="page-title">System Health</h1>
+      <p class="page-sub">สถานะระบบทั้งหมดแบบเรียลไทม์</p>
+      <div class="health-card"><div class="health-dot ok"></div><div class="li-main"><p class="li-title">Database (Supabase PostgreSQL)</p><p class="li-sub">Response 12ms · Connections 8/60</p></div><span class="badge success">Normal</span></div>
+      <div class="health-card"><div class="health-dot ok"></div><div class="li-main"><p class="li-title">Storage</p><p class="li-sub">2.1 GB / 100 GB ใช้งาน</p></div><span class="badge success">Normal</span></div>
+      <div class="health-card"><div class="health-dot warn"></div><div class="li-main"><p class="li-title">Job Queue (Redis / BullMQ)</p><p class="li-sub">รอดำเนินการ 18 งาน</p></div><span class="badge warn">Busy</span></div>
+      <div class="health-card"><div class="health-dot ok"></div><div class="li-main"><p class="li-title">AI Service (Claude API)</p><p class="li-sub">Latency 640ms · วันนี้ใช้ไป $4.20</p></div><span class="badge success">Normal</span></div>
+      <div class="health-card"><div class="health-dot ok"></div><div class="li-main"><p class="li-title">LINE OA</p><p class="li-sub">Webhook เชื่อมต่ออยู่</p></div><span class="badge success">Normal</span></div>
+      <div class="health-card"><div class="health-dot ok"></div><div class="li-main"><p class="li-title">Backup</p><p class="li-sub">ล่าสุด: วันนี้ 03:00 น. (PITR เปิดใช้)</p></div><span class="badge success">Normal</span></div>
+      <div class="health-card"><div class="health-dot ok"></div><div class="li-main"><p class="li-title">Version</p><p class="li-sub">WASAN ERP v0.4.0-prototype</p></div><span class="badge" style="background:var(--surface);color:var(--text-2);">Info</span></div>
+    </div>
+    <div class="bottomnav">
+      <div class="navitem" onclick="go('dashboard')">🏠<span>หน้าหลัก</span></div>
+      <div class="navitem" onclick="go('users')">👥<span>ผู้ใช้</span></div>
+      <div class="navitem active">🩺<span>Health</span></div>
+      <div class="navitem" onclick="go('audit')">📜<span>Audit</span></div>
+      <div class="navitem">☰<span>เพิ่มเติม</span></div>
+    </div>
+  </div>
+
+  <!-- AUDIT CENTER -->
+  <div class="screen" id="screen-audit">
+    <div class="content">
+      <h1 class="page-title">Audit Center</h1>
+      <div class="list-toolbar">
+        <div class="search-bar">🔍<input type="text" placeholder="ค้นหากิจกรรม / ผู้ใช้"></div>
+        <button class="tb-icon">⚙️</button>
+      </div>
+      <div class="filter-chips"><button class="fchip active">ทั้งหมด</button><button class="fchip">ลูกค้า</button><button class="fchip">ใบแจ้งขาย</button><button class="fchip">งานซ่อม</button><button class="fchip">ผู้ใช้</button><button class="fchip">การเงิน</button></div>
+
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-body">
+            <div class="t">แก้ไขวงเงินเครดิต — Bangkok Print Supplies</div>
+            <div class="d">โดย สมชาย (Owner) · 17 ก.ค. 14:20</div>
+            <div class="audit-diff"><span class="old">฿50,000</span> → <span class="new">฿100,000</span></div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot" style="background:var(--info);"></div>
+          <div class="tl-body">
+            <div class="t">เปลี่ยนสถานะงานซ่อม RPQR-0002</div>
+            <div class="d">โดย Nattaya (Technician) · 17 ก.ค. 11:05</div>
+            <div class="audit-diff"><span class="old">รออนุมัติ</span> → <span class="new">กำลังซ่อม</span></div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot" style="background:var(--warning);"></div>
+          <div class="tl-body">
+            <div class="t">แก้ไขบทบาทผู้ใช้ — Nattaya</div>
+            <div class="d">โดย สมชาย (Owner) · 15 ก.ค. 09:00</div>
+            <div class="audit-diff"><span class="old">Sales</span> → <span class="new">Technician</span></div>
+          </div>
+        </div>
+      </div>
+      <p class="infinite-hint">กำลังโหลดเพิ่มเติม... (Infinite scroll)</p>
+    </div>
+    <div class="bottomnav">
+      <div class="navitem" onclick="go('dashboard')">🏠<span>หน้าหลัก</span></div>
+      <div class="navitem" onclick="go('users')">👥<span>ผู้ใช้</span></div>
+      <div class="navitem" onclick="go('health')">🩺<span>Health</span></div>
+      <div class="navitem active">📜<span>Audit</span></div>
+      <div class="navitem">☰<span>เพิ่มเติม</span></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="desktop-wrap" id="desktopWrap">
+  <div class="d-sidebar">
+    <div class="d-logo">🔷 WASAN ERP</div>
+    <div class="d-nav-item">🖨️ Printer Master</div>
+    <div class="d-nav-item">📦 Inventory</div>
+    <div class="d-nav-item">🛒 Purchase</div>
+    <div class="d-nav-item">🏭 Suppliers</div>
+    <div class="d-nav-item">🔧 Repair</div>
+    <div class="d-nav-item">🧾 Invoice</div>
+    <div class="d-nav-item">💳 Credit Term</div>
+    <div class="d-nav-item">📊 Reports</div>
+    <div class="d-nav-item">⚙️ Settings</div>
+  </div>
+  <div class="d-main">
+    <div class="d-topbar">
+      <div>
+        <p class="greeting" style="margin:0;">สวัสดี, คุณสมชาย 👋</p>
+        <p class="branch-name" style="margin:2px 0 0;">สาขา Head Office</p>
+      </div>
+      <div class="d-search search-bar" style="margin-bottom:0;">🔍<input type="text" placeholder="ค้นหา ลูกค้า / สินค้า / ใบเสร็จ / ใบซ่อม / Serial / QR / Barcode"></div>
+    </div>
+
+    <div class="qa-row" style="overflow:visible;">
+      <button class="qa-pill">+ ขายสินค้า</button>
+      <button class="qa-pill">+ รับซ่อม</button>
+      <button class="qa-pill">+ สร้างใบเสนอราคา</button>
+      <button class="qa-pill">+ เพิ่มสต๊อก</button>
+      <button class="qa-pill">+ บันทึกรายจ่าย</button>
+    </div>
+
+    <div class="d-grid">
+      <div class="d-card"><div class="label">รายได้วันนี้</div><div class="value mono">฿12,480</div></div>
+      <div class="d-card"><div class="label">กำไรวันนี้</div><div class="value mono" style="color:var(--primary);">฿4,120</div></div>
+      <div class="d-card"><div class="label">ยอดค้างชำระ</div><div class="value mono" style="color:var(--danger);">฿31,900</div></div>
+      <div class="d-card"><div class="label">คิวซ่อม</div><div class="value">7 งาน</div></div>
+    </div>
+
+    <div class="d-cols">
+      <div>
+        <div class="section-title" style="margin-top:0;">รายจ่ายสูงสุด (เดือนนี้)</div>
+        <div class="card-box">
+          <div class="exp-row"><span class="exp-cat">เงินเดือน</span><span class="mono">฿18,000</span></div>
+          <div class="exp-row"><span class="exp-cat">ค่าเช่า</span><span class="mono">฿15,000</span></div>
+          <div class="exp-row"><span class="exp-cat">ค่าไฟฟ้า</span><span class="mono">฿3,200</span></div>
+          <div class="exp-row" style="border:none;"><span class="exp-cat" style="color:var(--danger)">⚠ รายจ่ายผิดปกติวันนี้</span><span class="mono" style="color:var(--danger)">฿2,400</span></div>
+        </div>
+        <div class="section-title">คลังสินค้า (ตัวอย่างมุมมองตาราง Desktop)</div>
+        <div class="card-box">
+          <div class="kv"><span class="k">Canon PIXMA G3010 · Canon · Shopee Mall</span><span class="v mono">฿4,500 → ฿4,990 · เหลือ 5</span></div>
+          <div class="kv"><span class="k">Canon GI-790 Black · Canon · Distributor</span><span class="v mono">฿180 → ฿350 · เหลือ 3</span></div>
+          <div class="kv"><span class="k">Epson EcoTank L3250 · Epson · Dealer</span><span class="v mono">฿5,000 → ฿5,590 · เหลือ 4</span></div>
+        </div>
+      </div>
+      <div class="ai-card" style="margin-top:0;">
+        <div class="ai-title">✨ AI Insights — ถามได้เลย</div>
+        <button class="ai-chip">วันนี้กำไรเท่าไหร่?</button>
+        <button class="ai-chip">ลูกหนี้ค้างใครบ้าง?</button>
+        <button class="ai-chip">หมึกตัวไหนใกล้หมด?</button>
+        <button class="ai-chip">งานซ่อมค้างกี่งาน?</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="note">
+  <b>Prototype notes</b><br>
+  Tap the status dot on the Repair screen to see the state-machine step advance (mirrors the DB-enforced transition rules from Phase 3). Bottom nav + FAB scan button demonstrate the one-handed / 3-tap principles. This is an HTML mockup for design review — Phase 6 rebuilds these exact screens as real Next.js + shadcn/ui components.
+</div>
+
+<script>
+  function go(name){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById('screen-'+name).classList.add('active');
+    document.querySelectorAll('.switcher button').forEach(b=>b.classList.toggle('active', b.dataset.screen===name));
+    updateChromeVisibility();
+  }
+  document.getElementById('switcher').addEventListener('click', e=>{
+    const btn = e.target.closest('button'); if(!btn) return;
+    go(btn.dataset.screen);
+  });
+
+  document.addEventListener('click', e=>{
+    const chip = e.target.closest('.fchip');
+    if(chip && chip.parentElement.classList.contains('filter-chips')){
+      chip.parentElement.querySelectorAll('.fchip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active');
+    }
+  });
+  const rolePerms = {
+    Owner:      [true,true,true,true,true,true],
+    Manager:    [true,true,true,true,false,true],
+    Technician: [false,true,true,false,false,false],
+    Sales:      [false,true,false,false,false,false],
+    Cashier:    [false,false,false,false,false,false],
+    Warehouse:  [false,false,false,false,false,false]
+  };
+  function previewRole(el){
+    document.querySelectorAll('#roleScroller .role-tile').forEach(t=>t.classList.remove('active'));
+    el.classList.add('active');
+    const role = el.dataset.role;
+    document.getElementById('roleBanner').innerHTML = '👁️ กำลังพรีวิวมุมมองของ: <b style="margin-left:4px;">'+role+'</b>';
+    const perms = rolePerms[role];
+    document.querySelectorAll('#permList .perm-row span:first-child').forEach((span,i)=>{
+      span.textContent = perms[i] ? '✔' : '✘';
+      span.className = perms[i] ? 'yes' : 'no';
+    });
+  }
+  function toggleGfab(){
+    document.getElementById('gfabMenu').classList.toggle('open');
+    document.getElementById('gfabMain').classList.toggle('open');
+  }
+  function openSheet(name){
+    document.getElementById('backdrop-'+name).classList.add('open');
+    document.getElementById('sheet-'+name).classList.add('open');
+  }
+  function closeSheet(name){
+    document.getElementById('backdrop-'+name).classList.remove('open');
+    document.getElementById('sheet-'+name).classList.remove('open');
+  }
+  document.addEventListener('keydown', e=>{
+    if((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); openSheet('cp'); }
+    if(e.key==='Escape'){ ['cp','ai','notif'].forEach(closeSheet); }
+  });
+  // Hide global chrome (header/FAB) on the Login screen only -- not logged in yet
+  function updateChromeVisibility(){
+    const onLogin = document.getElementById('screen-login').classList.contains('active');
+    document.querySelector('.smartheader').style.display = onLogin ? 'none' : 'block';
+    document.querySelector('.gfab-wrap').style.display = onLogin ? 'none' : 'flex';
+  }
+  updateChromeVisibility();
+
+  function toggleCustomize(){
+    document.getElementById('dash-widgets').classList.toggle('customizing');
+    document.getElementById('customizeBtn').classList.toggle('on');
+  }
+
+  function toggleSkeleton(){
+    document.getElementById('dash-skeleton').style.display =
+      document.getElementById('dash-skeleton').style.display === 'none' ? 'block' : 'none';
+    document.getElementById('dash-widgets').style.display =
+      document.getElementById('dash-widgets').style.display === 'none' ? 'block' : 'none';
+  }
+
+  function openRepairDetail(){
+    document.getElementById('repair-list').style.display='none';
+    document.getElementById('repair-detail').classList.add('active');
+  }
+  function closeRepairDetail(){
+    document.getElementById('repair-list').style.display='block';
+    document.getElementById('repair-detail').classList.remove('active');
+  }
+  document.getElementById('frametoggle').addEventListener('click', e=>{
+    const btn = e.target.closest('button'); if(!btn) return;
+    document.querySelectorAll('#frametoggle button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const mode = btn.dataset.frame;
+    const phone = document.getElementById('phoneFrame');
+    const desktop = document.getElementById('desktopWrap');
+    const switcher = document.getElementById('switcher');
+    if(mode==='desktop'){
+      phone.style.display='none'; desktop.classList.add('active'); switcher.style.display='none';
+    } else {
+      phone.style.display='block'; desktop.classList.remove('active'); switcher.style.display='flex';
+      phone.style.width = mode==='tablet' ? '700px' : '390px';
+      phone.style.height = mode==='tablet' ? '900px' : '780px';
+    }
+  });
+  function go2(listId, detailId){
+    document.getElementById(listId).style.display='none';
+    document.getElementById(detailId).style.display='block';
+  }
+  function back2(listId, detailId){
+    document.getElementById(detailId).style.display='none';
+    document.getElementById(listId).style.display='block';
+  }
+  function toggleSelect(listId){
+    const el = document.getElementById(listId);
+    el.classList.toggle('selecting');
+    document.getElementById(listId+'-bar').classList.toggle('on');
+  }
+  function setInvView(mode){
+    document.getElementById('inv-grid').style.display = mode==='grid' ? 'grid' : 'none';
+    document.getElementById('inv-list').style.display = mode==='list' ? 'block' : 'none';
+    document.getElementById('gv-grid').classList.toggle('on', mode==='grid');
+    document.getElementById('gv-list').classList.toggle('on', mode==='list');
+  }
+  function advanceStep(){
+    const current = document.querySelector('.step.current');
+    if(!current) return;
+    const next = current.nextElementSibling;
+    current.classList.remove('current'); current.classList.add('done'); current.querySelector('.dot').textContent='✓';
+    if(next){ next.classList.add('current'); }
+  }
+</script>
+</body>
+</html>
